@@ -29,10 +29,10 @@ latinos16_short <- anes_16 %>% select(V160001, V161003, V161309, V161004, V16100
                                               V161158x, V161310x,
                                               V161315, V161317, V161319x,
                                               V161323, V162326, V161196x, 
-                                      V161342)
+                                      V161342, V160101)
 latinos16_short <- latinos16_short[latinos16_short$V161309 == 1,]
 # saving latinos only 2016
- # write.csv(latinos16_short, "latinos16.csv")
+  write.csv(latinos16_short, "latinos16.csv")
 # loading
 latinos16 <- read.csv("latinos16.csv")
 latinos16 <- na.omit(latinos16)
@@ -150,7 +150,8 @@ anes20 <- anes_20 %>% select(V200001, V201600, V201005, V201014b, V201200,
                              V201231x, V201324, V201325, V201327x, V201507x,
                              V201508,  V201511x, V201534x, V201546, V201555,
                              V201553,
-                             V201558x, V201562, V201575, V202498, V201426x)
+                             V201558x, V201562, V201575, V202498, V201426x,
+                             V200010a)
 anes20 <- anes20 %>% mutate(
     Gender = case_when(V201600 == 1 ~ "Male",
              V201600 == 2 ~ "Female"),
