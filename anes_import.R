@@ -244,4 +244,4 @@ latinos20 <- anes20[anes20$Hispanic == "Yes",]
 
 
 # saving 
-write.csv(latinos20, "latinos20.csv")
+# write.csv(latinos20, "latinos20.csv")
