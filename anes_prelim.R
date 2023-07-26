@@ -20,3 +20,17 @@ latinos_16 <- latinos_16 %>% mutate(
 ## Checking
 #table(latinos_16$Migration_Dist)
 
+# baseline models --- as OLS 
+
+base_model <- svyglm(V161196x ~ Age + Ideology + Party + Identity_Importance + 
+                    Gender + Migration_Dist, data = latinos_16, 
+                  family = "gaussian", rescale = TRUE, design = svy_16)
+summary(base_model)
+
+
+## Identity * Psych Dist 
+
+psych_model <- svyglm(V161196x ~ Age + Ideology + Party + 
+                       Gender + Migration_Dist*Identity_Importance, data = latinos_16, 
+                     family = "gaussian", rescale = TRUE, design = svy_16)
+summary(psych_model)
