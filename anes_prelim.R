@@ -51,8 +51,13 @@ summary(psych_model)
 # baseline models 2020  --- as OLS --------
 
 base_model_20 <- svyglm(V201426x ~ Age + Ideology + Party + 
-                       Gender + Education + Economy_Past + Attention_Politics +
-                         Migration_Dist, data = latinos_20, 
+                       Gender + Education + Economy_Past + Attention_Politics, 
+                       data = latinos_20, 
                      family = "gaussian", rescale = TRUE, design = svy_20)
 summary(base_model_20)
 
+psych_model_20 <- svyglm(V201426x ~ Age + Ideology + Party + 
+                          Gender + Education + Economy_Past + 
+                           Attention_Politics + Migration_Dist, 
+                        data = latinos_20, 
+                        family = "gaussian", rescale = TRUE, design = svy_20)
