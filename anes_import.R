@@ -115,7 +115,12 @@ latinos_16 <- latinos16 %>% mutate(
     Gender = case_when(V161342 == 1 ~ "Male",
                        V161342 == 2 ~ "Female",
                        V161342 == 3 ~ "Other"),
-    Age = V161342
+    Age = V161342,
+    Education = case_when(V161270 < 9 ~ "Less than HS",
+                          V161270 == 9 ~ "HS",
+                          V161270 == c(10:12) ~ "Some College",
+                          V161270 == 13 ~ "Bachelor's",
+                          V161270 == c(14:16) ~ "Post-Graduate")
 )
 
 ## getting rid of non-controls 
