@@ -1,6 +1,6 @@
 # ANES DATA IMPORT 
 
-anes_12 <- read_dta("anes_12/anes_timeseries_2012_Stata12.dta")
+# anes_12 <- read_dta("anes_12/anes_timeseries_2012_Stata12.dta")
 anes_16 <- read_dta("anes_16/anes_timeseries_2016_Stata12.dta")
 anes_20 <- read.csv("anes_20/anes_timeseries_2020_csv_20220210.csv")
 
@@ -29,10 +29,10 @@ latinos16_short <- anes_16 %>% select(V160001, V161003, V161309, V161004, V16100
                                               V161158x, V161310x,
                                               V161315, V161317, V161319x,
                                               V161323, V162326, V161196x, 
-                                      V161342, V160101)
+                                      V161342, V160101, V161270)
 latinos16_short <- latinos16_short[latinos16_short$V161309 == 1,]
 # saving latinos only 2016
-  write.csv(latinos16_short, "latinos16.csv")
+ write.csv(latinos16_short, "latinos16.csv")
 # loading
 latinos16 <- read.csv("latinos16.csv")
 latinos16 <- na.omit(latinos16)
@@ -116,12 +116,18 @@ latinos_16 <- latinos16 %>% mutate(
                        V161342 == 2 ~ "Female",
                        V161342 == 3 ~ "Other"),
     Age = V161342,
-    Education = case_when(V161270 < 9 ~ "Less than HS",
-                          V161270 == 9 ~ "HS",
-                          V161270 == c(10:12) ~ "Some College",
-                          V161270 == 13 ~ "Bachelor's",
-                          V161270 == c(14:16) ~ "Post-Graduate")
+    # Education = case_when(V161270 < 9 ~ "Less than HS",
+    #                       V161270 == 9 ~ "HS",
+    #                       V161270 == c(10:12) ~ "Some College",
+    #                       V161270 == 13 ~ "Bachelor's",
+    #                       V161270 == c(14:16) ~ "Post-Graduate")
 )
+
+# how many non-responses
+latinos_16 %>% summarise_all(~ sum(is.na(.)))
+
+# testing out cleaning
+latinos_16_clean <- na.omit(latinos_16)
 
 ## getting rid of non-controls 
 
@@ -248,6 +254,8 @@ anes20 <- anes20 %>% mutate(
 # Subsetting to latinos only
 latinos20 <- anes20[anes20$Hispanic == "Yes",]
 
-
+## testing out how many NAs in 2020 
+latinos20 %>% summarise_all(~ sum(is.na(.)))
+latinos20_clean <- na.omit(latinos20)
 # saving 
 # write.csv(latinos20, "latinos20.csv")
