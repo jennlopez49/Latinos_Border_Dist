@@ -34,7 +34,9 @@ latinos_20 <- latinos20 %>% mutate(
 # baseline models 2016  --- as OLS --------
 
 base_model <- svyglm(V161196x ~ Age + Ideology + Party + Identity_Importance + 
-                    Gender + Education + Migration_Dist, data = latinos_16, 
+                    Gender + 
+                      Education +
+                      Migration_Dist, data = latinos_16, 
                   family = "gaussian", rescale = TRUE, design = svy_16)
 summary(base_model)
 
@@ -42,11 +44,15 @@ summary(base_model)
 ## Identity * Psych Dist 2016 -----------
 
 psych_model <- svyglm(V161196x ~ Age + Ideology + Party + 
-                       Gender + Education + 
+                       Gender +
+                        Education +
                         Migration_Dist*Identity_Importance, data = latinos_16, 
                      family = "gaussian", rescale = TRUE, design = svy_16)
 summary(psych_model)
 
+# printing table of both for initial findings
+
+stargazer(base_model, psych_model, type = "text", out = "intial_08.html")
 
 # baseline models 2020  --- as OLS --------
 

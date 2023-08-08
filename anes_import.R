@@ -116,11 +116,15 @@ latinos_16 <- latinos16 %>% mutate(
                        V161342 == 2 ~ "Female",
                        V161342 == 3 ~ "Other"),
     Age = V161342,
-    # Education = case_when(V161270 < 9 ~ "Less than HS",
-    #                       V161270 == 9 ~ "HS",
-    #                       V161270 == c(10:12) ~ "Some College",
-    #                       V161270 == 13 ~ "Bachelor's",
-    #                       V161270 == c(14:16) ~ "Post-Graduate")
+    Education = case_when(V161270 < 9 ~ "Less than HS",
+                          V161270 == 9 ~ "HS",
+                          V161270 == 10 ~ "Some College",
+                          V161270 == 11 ~ "Some College",
+                          V161270 == 12 ~ "Some College",
+                          V161270 == 13 ~ "Bachelor's",
+                          V161270 == 14 ~ "Post-Graduate",
+                          V161270 == 15 ~ "Post-Graduate",
+                          V161270 == 16 ~ "Post-Graduate")
 )
 
 # how many non-responses
