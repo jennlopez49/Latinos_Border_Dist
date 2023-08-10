@@ -46,7 +46,9 @@ latinos_20 <- latinos20 %>% mutate(
 
 latinos_16$Migration_Dist_Factor <-as.factor(latinos_16$Migration_Dist_Factor)
 latinos_16$Migration_Dist_Factor <-relevel(latinos_16$Migration_Dist_Factor,
-                                           ref = "Med Dist")
+                                           ref = "High Dist")
+latinos_16$Gender <-relevel(as.factor(latinos_16$Gender), ref = "Male")
+
 
 ## setting up the survey design --------
 svy_16<- svydesign(id = ~ 1, weights = ~V160101, data = latinos_16)
@@ -55,7 +57,7 @@ svy_20 <- svydesign(id = ~ 1, weights = ~V200010a, data = latinos20)
 
 # baseline models 2016  --- as OLS --------
 
-base_model <- svyglm(V161196x ~ Age + Ideology + Party + Identity_Importance + 
+base_model <- svyglm(Border_Reordered ~ Age + Ideology + Party + Identity_Importance + 
                     Gender + 
                       Education +
                       Migration_Dist, data = latinos_16, rescale = TRUE, design = svy_16)
@@ -85,7 +87,8 @@ summary(psych_model)
 
 # printing table of both for initial findings
 
-stargazer(base_model, psych_model, type = "text", out = "intial_08.html")
+stargazer(base_model,base_model_fact, psych_model, psych_model_fact,
+          type = "text", out = "intial_08.html")
 
 # baseline models 2020  --- as OLS --------
 
