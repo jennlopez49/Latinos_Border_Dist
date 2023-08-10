@@ -1,12 +1,12 @@
 # ANES DATA IMPORT 
 
 # anes_12 <- read_dta("anes_12/anes_timeseries_2012_Stata12.dta")
-anes_16 <- read_dta("anes_16/anes_timeseries_2016_Stata12.dta")
+# anes_16 <- read_dta("anes_16/anes_timeseries_2016_Stata12.dta")
 anes_20 <- read.csv("anes_20/anes_timeseries_2020_csv_20220210.csv")
 
 # getting rid of mode, etc to use lasso 
-
-anes12 <- anes_12[,-c(1,3:13)]
+# 
+# anes12 <- anes_12[,-c(1,3:13)]
 
 # lasso on all possible variables 
 # 2012:
@@ -31,9 +31,11 @@ latinos16_short <- anes_16 %>% select(V160001, V161003, V161309, V161004, V16100
                                               V161323, V162326, V161196x, 
                                       V161342, V160101, V161270)
 latinos16_short <- latinos16_short[latinos16_short$V161309 == 1,]
-# saving latinos only 2016
- write.csv(latinos16_short, "latinos16.csv")
-# loading
+# saving latinos only 2016, csv --------
+
+# write.csv(latinos16_short, "latinos16.csv")
+
+# loading ---------------
 latinos16 <- read.csv("latinos16.csv")
 latinos16 <- na.omit(latinos16)
 
@@ -41,7 +43,7 @@ latinos16 <- na.omit(latinos16)
 #latinos16_clean <- latinos16 %>% replace_with_na_all(condition = ~.x == -3)
 #latinos16_clean <-  latinos16_clean[, unlist(lapply(latinos16_clean, function(x) !all(is.na(x))))]
 
-#### --- adding in factor labels 
+#### --- adding in factor labels -------------
 
 latinos_16 <- latinos16 %>% mutate(
     Ideology = case_when(V161127 == 1 ~ "Liberal",
@@ -119,6 +121,12 @@ latinos_16 <- latinos16 %>% mutate(
                                   V161196x == 5 ~ 3,
                                   V161196x == 6 ~ 2,
                                   V161196x == 7 ~ 1),
+    # Border_Bin = case_when(V161196x == 1 ~ 1,
+    #                        V161196x == 2 ~ 1,
+    #                        V161196x == 3 ~ 1,
+    #                        V161196x == 5 ~ 0,
+    #                        V161196x == 6 ~ 0,
+    #                        V161196x == 7 ~ 0),
     Gender = case_when(V161342 == 1 ~ "Male",
                        V161342 == 2 ~ "Female",
                        V161342 == 3 ~ "Other"),

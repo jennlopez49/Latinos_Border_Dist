@@ -100,3 +100,19 @@ psych_model_20 <- svyglm(V201426x ~ Age + Ideology + Party +
                            Attention_Politics + Migration_Dist, 
                         data = latinos_20, 
                         family = "gaussian", rescale = TRUE, design = svy_20)
+### models with border wall binary var + binomial models --------------
+# bin_base <- svyglm(Border_Bin ~ Age + Ideology + Party + Identity_Importance + 
+#                             Gender + 
+#                             Education +
+#                             Migration_Dist_Factor, 
+#                           data = latinos_16, 
+#                           family = binomial(link = "logit"), rescale = TRUE, 
+#                           design = svy_16)
+# 
+# bin_psych <- svyglm(Border_Bin ~ Age + Ideology + Party + 
+#                              Gender +
+#                              Education +
+#                              Migration_Dist_Factor*Identity_Importance, 
+#                            data = latinos_16, family = binomial(link = "logit"),
+#                            rescale = TRUE, design = svy_16)
+# stargazer(bin_base, bin_psych, type = "text", out = "binomial_08.html")
