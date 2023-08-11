@@ -14,18 +14,22 @@ latinos_16 <- latinos_16 %>% mutate(
                                     Migration_Dist == 2 ~ "Low Dist",
                                     Migration_Dist == 3 ~ "Low Dist",
                                     Migration_Dist == 4 ~ "Low Dist",
-                                    Migration_Dist == 5 ~ "Med Dist",
+                                    Migration_Dist == 5 ~ "Low Dist",
                                     Migration_Dist == 6 ~ "Med Dist",
                                     Migration_Dist == 7 ~ "Med Dist",
                                     Migration_Dist == 8 ~ "Med Dist",
-                                    Migration_Dist == 9 ~ "High Dist",
-                                    Migration_Dist == 10 ~ "High Dist",
+                                    Migration_Dist == 9 ~ "Med Dist",
+                                    Migration_Dist == 10 ~ "Med Dist",
                                     Migration_Dist == 11 ~ "High Dist",
                                     Migration_Dist == 12 ~ "High Dist",
                                     Migration_Dist == 13 ~ "High Dist",
                                     Migration_Dist == 14 ~ "High Dist",
-                                    Migration_Dist == 15 ~ "High Dist"
-  )
+                                    Migration_Dist == 15 ~ "High Dist"),
+  Identity_Imp = case_when(Identity_Importance == "Not at all Important" ~ "Low",
+                           Identity_Importance == "A little Important" ~ "Low",
+                           Identity_Importance == "Moderately Important" ~ "Med",
+                           Identity_Importance == "Very Important" ~ "High",
+                           Identity_Importance == "Extremely Important" ~ "High")
 )
 
 latinos_20 <- latinos20 %>% mutate(
@@ -48,7 +52,8 @@ latinos_16$Migration_Dist_Factor <-as.factor(latinos_16$Migration_Dist_Factor)
 latinos_16$Migration_Dist_Factor <-relevel(latinos_16$Migration_Dist_Factor,
                                            ref = "High Dist")
 latinos_16$Gender <-relevel(as.factor(latinos_16$Gender), ref = "Male")
-
+latinos_16$Identity_Imp <-relevel(as.factor(latinos_16$Identity_Imp), 
+                                         ref = "High")
 
 ## setting up the survey design --------
 svy_16<- svydesign(id = ~ 1, weights = ~V160101, data = latinos_16)
@@ -60,12 +65,13 @@ svy_20 <- svydesign(id = ~ 1, weights = ~V200010a, data = latinos20)
 base_model <- svyglm(Border_Reordered ~ Age + Ideology + Party + Identity_Importance + 
                     Gender + 
                       Education +
-                      Migration_Dist, data = latinos_16, rescale = TRUE, design = svy_16)
+                      Migration_Dist, data = latinos_16, design = svy_16)
 base_model_fact <- svyglm(Border_Reordered ~ Age + Ideology + Party + Identity_Importance + 
                        Gender + 
                        Education +
                          Migration_Dist_Factor, 
-                       data = latinos_16, rescale = TRUE, design = svy_16)
+                       data = latinos_16, design = svy_16)
+
 
 summary(base_model_fact)
 
@@ -76,13 +82,13 @@ psych_model <- svyglm(Border_Reordered ~ Age + Ideology + Party +
                        Gender +
                         Education +
                         Migration_Dist*Identity_Importance, data = latinos_16, 
-                      rescale = TRUE, design = svy_16)
+                       design = svy_16)
 psych_model_fact <- svyglm(Border_Reordered ~ Age + Ideology + Party + 
                         Gender +
                         Education +
                          Migration_Dist_Factor*Identity_Importance, 
                        data = latinos_16, 
-                       rescale = TRUE, design = svy_16)
+                       design = svy_16)
 summary(psych_model)
 
 # printing table of both for initial findings
