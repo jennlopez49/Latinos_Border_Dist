@@ -10,26 +10,31 @@ latinos_16 <- latinos_16 %>% mutate(
                       V161317 == 3 ~ 2,
                       V161317 == 4 ~ 1),
   Migration_Dist = p_born*g_born, 
-  Migration_Dist_Factor = case_when(Migration_Dist == 1 ~ "Low Dist",
-                                    Migration_Dist == 2 ~ "Low Dist",
-                                    Migration_Dist == 3 ~ "Low Dist",
-                                    Migration_Dist == 4 ~ "Low Dist",
-                                    Migration_Dist == 5 ~ "Low Dist",
-                                    Migration_Dist == 6 ~ "Med Dist",
-                                    Migration_Dist == 7 ~ "Med Dist",
-                                    Migration_Dist == 8 ~ "Med Dist",
-                                    Migration_Dist == 9 ~ "Med Dist",
-                                    Migration_Dist == 10 ~ "Med Dist",
-                                    Migration_Dist == 11 ~ "High Dist",
-                                    Migration_Dist == 12 ~ "High Dist",
-                                    Migration_Dist == 13 ~ "High Dist",
-                                    Migration_Dist == 14 ~ "High Dist",
-                                    Migration_Dist == 15 ~ "High Dist"),
+  Migration_Dist_Factor = case_when(Migration_Dist == 1 ~ 1,
+                                    Migration_Dist == 2 ~ 1,
+                                    Migration_Dist == 3 ~ 1,
+                                    Migration_Dist == 4 ~ 1,
+                                    Migration_Dist == 5 ~ 2,
+                                    Migration_Dist == 6 ~ 2,
+                                    Migration_Dist == 7 ~ 2,
+                                    Migration_Dist == 8 ~ 2,
+                                    Migration_Dist == 9 ~ 2,
+                                    Migration_Dist == 10 ~ 2,
+                                    Migration_Dist == 11 ~ 3,
+                                    Migration_Dist == 12 ~ 3,
+                                    Migration_Dist == 13 ~ 3,
+                                    Migration_Dist == 14 ~ 3,
+                                    Migration_Dist == 15 ~ 3),
   Identity_Imp = case_when(Identity_Importance == "Not at all Important" ~ "Low",
                            Identity_Importance == "A little Important" ~ "Low",
                            Identity_Importance == "Moderately Important" ~ "Med",
                            Identity_Importance == "Very Important" ~ "High",
-                           Identity_Importance == "Extremely Important" ~ "High")
+                           Identity_Importance == "Extremely Important" ~ "High"),
+  Migration_Dist_Add = p_born + g_born,
+  Grandparents_Short = case_when(V161317 == 0 ~ 0,
+                                 V161317 > 0 & V161317 < 3 ~ 1,
+                                 V161317 > 2 ~ 2),
+  Migration_Dist_Add_Short = Grandparents_Short + p_born
 )
 
 latinos_20 <- latinos20 %>% mutate(
@@ -71,10 +76,11 @@ base_model_fact <- svyglm(Border_Reordered ~ Age + Ideology + Party + Identity_I
                        Education +
                          Migration_Dist_Factor, 
                        data = latinos_16, design = svy_16)
-
-
-summary(base_model_fact)
-
+base_ols <- lm(Border_Reordered ~ Age + Ideology + Party + Identity_Importance + 
+                            Gender + 
+                            Education +
+                 Migration_Dist, 
+                          data = latinos_16, weights = V160101)
 
 ## Identity * Psych Dist 2016 -----------
 
@@ -91,10 +97,19 @@ psych_model_fact <- svyglm(Border_Reordered ~ Age + Ideology + Party +
                        design = svy_16)
 summary(psych_model)
 
+psych_ols <- lm(Border_Reordered ~ Age + Ideology + Party + 
+                        Gender +
+                        Education +
+                        Migration_Dist*Identity_Importance, data = latinos_16, 
+                    weights = V160101)
+
 # printing table of both for initial findings
 
 stargazer(base_model,base_model_fact, psych_model, psych_model_fact,
           type = "text", out = "intial_08.html")
+
+stargazer(base_ols,psych_ols, 
+          type = "text", out = "ols_08.html")
 
 # baseline models 2020  --- as OLS --------
 
