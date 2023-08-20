@@ -48,8 +48,11 @@ latinos_20 <- latinos20 %>% mutate(
                       V201555 == 4 ~ 1),
   Migration_Dist = p_born*g_born
 )
-## Checking
-#table(latinos_16$Migration_Dist)
+## Checking ---- cronbach's alpha 
+born_short <- data.frame(p = latinos_16$p_born, g = latinos_16$Grandparents_Short)
+born_index <- data.frame(p = latinos_16$p_born, g = latinos_16$g_born)
+CronbachAlpha(born_index, conf.level = .95, na.rm = TRUE)
+CronbachAlpha(born_short, conf.level = .95, na.rm = TRUE)
 
 # re-leveling migration dist to make it easier to understand 
 
@@ -59,6 +62,8 @@ latinos_16$Migration_Dist_Factor <-relevel(latinos_16$Migration_Dist_Factor,
 latinos_16$Gender <-relevel(as.factor(latinos_16$Gender), ref = "Male")
 latinos_16$Identity_Imp <-relevel(as.factor(latinos_16$Identity_Imp), 
                                          ref = "High")
+latinos_16$Identity_Importance <-relevel(as.factor(latinos_16$Identity_Importance), 
+                                  ref = "Not at all Important")
 
 ## setting up the survey design --------
 svy_16<- svydesign(id = ~ 1, weights = ~V160101, data = latinos_16)
@@ -97,12 +102,9 @@ psych_model_fact <- svyglm(Border_Reordered ~ Age + Ideology + Party +
                        design = svy_16)
 summary(psych_model)
 
-psych_ols <- lm(Border_Reordered ~ Age + Ideology + Party + 
-                        Gender +
-                        Education +
-                        Migration_Dist*Identity_Importance, data = latinos_16, 
-                    weights = V160101)
-
+psych_ols <- lm(Border_Reordered ~ Age + Party + Education + 
+                        Migration_Dist*Identity_Importance, data = latinos_16)
+summary(psych_ols)
 # printing table of both for initial findings
 
 stargazer(base_model,base_model_fact, psych_model, psych_model_fact,
