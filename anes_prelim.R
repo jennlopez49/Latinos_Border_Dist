@@ -34,7 +34,10 @@ latinos_16 <- latinos_16 %>% mutate(
   Grandparents_Short = case_when(V161317 == 0 ~ 0,
                                  V161317 > 0 & V161317 < 3 ~ 1,
                                  V161317 > 2 ~ 2),
-  Migration_Dist_Add_Short = Grandparents_Short + p_born
+  Migration_Dist_Add_Short = Grandparents_Short + p_born,
+  scaled_p = scale(latinos_16$p_born),
+  scaled_g = scale(latinos_16$g_born),
+  Migration_Dist_Add_Scaled = scaled_p + scaled_g
 )
 
 latinos_20 <- latinos20 %>% mutate(
@@ -49,10 +52,11 @@ latinos_20 <- latinos20 %>% mutate(
   Migration_Dist = p_born*g_born
 )
 ## Checking ---- cronbach's alpha 
-born_short <- data.frame(p = latinos_16$p_born, g = latinos_16$Grandparents_Short)
+born_scaled <- data.frame(p = latinos_16$scaled_p, g = latinos_16$scaled_g)
 born_index <- data.frame(p = latinos_16$p_born, g = latinos_16$g_born)
-CronbachAlpha(born_index, conf.level = .95, na.rm = TRUE)
-CronbachAlpha(born_short, conf.level = .95, na.rm = TRUE)
+
+cronbach.alpha(born_index, CI = TRUE, na.rm = TRUE)
+cronbach.alpha(born_scaled, CI = TRUE, na.rm = TRUE)
 
 # re-leveling migration dist to make it easier to understand 
 
@@ -82,10 +86,9 @@ base_model_fact <- svyglm(Border_Reordered ~ Age + Ideology + Party + Identity_I
                          Migration_Dist_Factor, 
                        data = latinos_16, design = svy_16)
 base_ols <- lm(Border_Reordered ~ Age + Ideology + Party + Identity_Importance + 
-                            Gender + 
                             Education +
-                 Migration_Dist, 
-                          data = latinos_16, weights = V160101)
+                 Migration_Dist_Add_Scaled, 
+                          data = latinos_16)
 
 ## Identity * Psych Dist 2016 -----------
 
@@ -103,7 +106,7 @@ psych_model_fact <- svyglm(Border_Reordered ~ Age + Ideology + Party +
 summary(psych_model)
 
 psych_ols <- lm(Border_Reordered ~ Age + Party + Education + 
-                        Migration_Dist*Identity_Importance, data = latinos_16)
+                  Migration_Dist*Identity_Importance, data = latinos_16)
 summary(psych_ols)
 # printing table of both for initial findings
 
