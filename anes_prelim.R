@@ -142,15 +142,15 @@ psych_model_fact <- svyglm(Border_Reordered ~ Age + Ideo_8 + Party_Cont +
                        design = svy_16)
 summary(psych_model)
 
-psych_ols <- lm(Border_Reordered ~ Age + Ideo_8 + Party_Cont + Education_Cont + 
-                  Attention_to_Politics  + Economy_PastYear + 
-                  Latin_Country +
-                  Migration_Weighted*Identity_Importance, data = latinos_16)
+psych_ols <- lm(Border_Short ~ Age + Ideo_8 + Party_Cont + Education_Cont + 
+                  Attention_NewsMedia  + Economy_PastYear + 
+                  # Latin_Country + 
+                  Migration_Dist_Add*Latino_Identity, data = latinos_16)
 
 lang_ols <- lm(Border_Reordered ~ Age + Ideo_8 + Party_Cont + Education_Cont + 
                  Identity_Importance + Attention_to_Politics +Economy_PastYear + 
                  Latin_Country +
-                  Migration_Lang_Mult*Identity_Importance, data = latinos_16)
+                  Migration_Lang_Mult*Latino_Identity, data = latinos_16)
 summary(psych_ols)
 # printing table of both for initial findings
 
@@ -160,32 +160,3 @@ stargazer(base_model,base_model_lang, psych_dist_fact, psych_model_fact,
 stargazer(base_ols,base_ols_lang, psych_ols, lang_ols,
           type = "text", out = "ols_08.html")
 
-# baseline models 2020  --- as OLS --------
-
-base_model_20 <- svyglm(V201426x ~ Age + Ideology + Party + 
-                       Gender + Education + Economy_Past + Attention_Politics, 
-                       data = latinos_20, 
-                     family = "gaussian", rescale = TRUE, design = svy_20)
-summary(base_model_20)
-
-psych_model_20 <- svyglm(V201426x ~ Age + Ideology + Party +
-                          Gender + Education + Economy_Past + 
-                           Attention_Politics + Migration_Dist, 
-                        data = latinos_20, 
-                        family = "gaussian", rescale = TRUE, design = svy_20)
-### models with border wall binary var + binomial models --------------
-# bin_base <- svyglm(Border_Bin ~ Age + Ideology + Party + Identity_Importance + 
-#                             Gender + 
-#                             Education +
-#                             Migration_Dist_Factor, 
-#                           data = latinos_16, 
-#                           family = binomial(link = "logit"), rescale = TRUE, 
-#                           design = svy_16)
-# 
-# bin_psych <- svyglm(Border_Bin ~ Age + Ideology + Party + 
-#                              Gender +
-#                              Education +
-#                              Migration_Dist_Factor*Identity_Importance, 
-#                            data = latinos_16, family = binomial(link = "logit"),
-#                            rescale = TRUE, design = svy_16)
-# stargazer(bin_base, bin_psych, type = "text", out = "binomial_08.html")
