@@ -1,7 +1,7 @@
 # ANES DATA IMPORT 
 
 # anes_12 <- read_dta("anes_12/anes_timeseries_2012_Stata12.dta")
-# anes_16 <- read_dta("anes_16/anes_timeseries_2016_Stata12.dta")
+anes_16 <- read_dta("anes_16/anes_timeseries_2016_Stata12.dta")
 anes_20 <- read.csv("anes_20/anes_timeseries_2020_csv_20220210.csv")
 
 # getting rid of mode, etc to use lasso 
@@ -29,11 +29,13 @@ latinos16_short <- anes_16 %>% select(V160001, V161003, V161309, V161004, V16100
                                               V161158x, V161310x,
                                               V161315, V161317, V161319x,
                                               V161323, V162326, V161196x, 
-                                      V161342, V160101, V161270)
+                                      V161342, V160101, V161270, V161126, V160102,
+                                      V160201, V160202, V162268, V162269, V162270,
+                                      V162224, V162222, V162332, V162221)
 latinos16_short <- latinos16_short[latinos16_short$V161309 == 1,]
 # saving latinos only 2016, csv --------
 
-# write.csv(latinos16_short, "latinos16.csv")
+write.csv(latinos16_short, "latinos16.csv")
 
 # loading ---------------
 latinos16 <- read.csv("latinos16.csv")
@@ -46,9 +48,25 @@ latinos16 <- na.omit(latinos16)
 #### --- adding in factor labels -------------
 
 latinos_16 <- latinos16 %>% mutate(
-    Ideology = case_when(V161127 == 1 ~ "Liberal",
+    # 162171a -- alt 3 category one
+    Ideology = case_when(V161126 == 1 ~ "Extremely Liberal",
+                         V161126 == 2 ~ "Liberal",
+                         V161126 == 3 ~ "Slightly Liberal",
+                         V161126 == 5 ~ "Slightly Conservative",
+                         V161126 == 6 ~ "Conservative",
+                         V161126 == 7 ~ "Extremely Conservative",
+                         V161126 == 99 ~ "Don't Know",
+                         V161127 == 1 ~ "Liberal",
                          V161127 == 2 ~ "Conservative",
                          V161127 == 3 ~ "Moderate"),
+    Ideo_8 = case_when(Ideology == "Extremely Liberal" ~ 1,
+                       Ideology == "Liberal" ~ 2,
+                       Ideology == "Slightly Liberal" ~ 3,
+                       Ideology == "Moderate" ~ 4,
+                       Ideology == "Don't Know" ~ 5,
+                       Ideology == "Slightly Conservative" ~ 6,
+                       Ideology == "Conservative" ~ 7,
+                       Ideology == "Extremely Conservative" ~ 8),
     Attention_to_Politics = case_when(V161003 == 1 ~ "Always",
                                       V161003 == 2 ~ "Most of the time",
                                       V161003 == 3 ~ "About half of the time",
@@ -102,6 +120,11 @@ latinos_16 <- latinos16 %>% mutate(
                          V161323 == 3 ~ "Both languages equally",
                          V161323 == 4 ~ "Mostly Spanish",
                          V161323 == 5 ~ "Only Spanish"),
+    Language_Cont = case_when(V161323 == 1 ~ 5,
+                              V161323 == 2 ~ 4,
+                              V161323 == 3 ~ 3,
+                              V161323 == 4 ~ 2,
+                              V161323 == 5 ~ 1),
     Identity_Importance = case_when(V162326 == 1 ~ "Extremely Important",
                                     V162326 == 2 ~ "Very Important",
                                     V162326 == 3 ~ "Moderately Important",
@@ -143,7 +166,40 @@ latinos_16 <- latinos16 %>% mutate(
                           V161270 == 13 ~ "Bachelor's",
                           V161270 == 14 ~ "Post-Graduate",
                           V161270 == 15 ~ "Post-Graduate",
-                          V161270 == 16 ~ "Post-Graduate")
+                          V161270 == 16 ~ "Post-Graduate"),
+    Immigrants_Economy = case_when(V162268 == 1 ~ 1,                             # 1 agree strongly that they are good for econ, 5 disagree strongly 
+                                   V162268 == 2 ~ 2,
+                                   V162268 == 3 ~ 3,
+                                   V162268 == 4 ~ 4,
+                                   V162268 == 5 ~ 5),
+    Immigrants_HarmCulture = case_when(V162269 == 1 ~ 5,                         # 1 - disagree strongly that imm harm culture, 5 agree strongly 
+                                       V162269 == 2 ~ 4,
+                                       V162269 == 3 ~ 3,
+                                       V162269 == 4 ~ 2,
+                                       V162269 == 5 ~ 1),
+    Immigrants_Crime = case_when(V162270 == 1 ~ 5,                               # 1 - disagree strongly that imms increase crime, 5 agree strongly 
+                                 V162270 == 2 ~ 4,
+                                 V162270 == 3 ~ 3,
+                                 V162270 == 4 ~ 2,
+                                 V162270 == 5 ~ 1),
+    Linked_Fate = case_when(V162224 == 1 ~ 1,                                    # 1 - life affected a lot, 4 - not at all 
+                            V162224 == 2 ~ 2,
+                            V162224 == 3 ~ 3,
+                            V162224 == 4 ~ 4),
+    News_Language = case_when(V162222 == 1 ~ 1,                                 # 1 - English More, 3- Spanish More, 2 - Equally
+                              V162222 == 3 ~ 2,
+                              V162222 == 2 ~ 3),
+    Hispanic_Candidates = case_when(V162221 == 1 ~ 1,                           # 1 - Extremely Important, 5 - Not at all important
+                                    V162221 == 2 ~ 2,
+                                    V162221 == 3 ~ 3,
+                                    V162221 == 4 ~ 4,
+                                    V162221 == 5 ~ 5),
+    American_Identity = case_when(V162332 == 1 ~ 1,                             # 1 - Extremely Important, 5 - Not at all important
+                                  V162332 == 2 ~ 2,
+                                  V162332 == 3 ~ 3,
+                                  V162332 == 4 ~ 4,
+                                  V162332 == 5 ~ 5)
+    
 )
 
 # how many non-responses

@@ -31,13 +31,29 @@ latinos_16 <- latinos_16 %>% mutate(
                            Identity_Importance == "Very Important" ~ "High",
                            Identity_Importance == "Extremely Important" ~ "High"),
   Migration_Dist_Add = p_born + g_born,
-  Grandparents_Short = case_when(V161317 == 0 ~ 0,
-                                 V161317 > 0 & V161317 < 3 ~ 1,
-                                 V161317 > 2 ~ 2),
+  Grandparents_Short = case_when(V161317 == 0 ~ 1,
+                                 V161317 > 0 & V161317 < 3 ~ 2,
+                                 V161317 > 2 ~ 3),
   Migration_Dist_Add_Short = Grandparents_Short + p_born,
-  scaled_p = scale(latinos_16$p_born),
-  scaled_g = scale(latinos_16$g_born),
-  Migration_Dist_Add_Scaled = scaled_p + scaled_g
+  Education_Cont = case_when(Education == "Less than HS" ~ 1,
+                             Education == "HS" ~ 2,
+                             Education == "Some College" ~ 3,
+                             Education == "Bachelor's" ~ 4,
+                             Education == "Post-Graduate" ~ 5),
+  Party_Cont = case_when(Party == "Strong Democrat" ~ 1,
+                         Party == "Not very strong Democrat" ~ 2,
+                         Party == "Independent-Democrat" ~ 3,
+                         Party == "Independent" ~ 4,
+                         Party == "Independent-Republican" ~ 5,
+                         Party == "Not very strong Republican" ~ 6,
+                         Party == "Strong Republican" ~ 7),
+  Migration_Lang_Mult = Migration_Dist*Language_Cont,
+  Migration_Lang_Add = Migration_Dist_Add*Language_Cont,
+  Migration_Lang_Add_Short = Migration_Dist_Add_Short + Language_Cont,
+  Migration_Weighted = p_born^2 + g_born
+  # scaled_p = scale(latinos_16$p_born),
+  # scaled_g = scale(latinos_16$g_born),
+  # Migration_Dist_Add_Scaled = scaled_p + scaled_g
 )
 
 latinos_20 <- latinos20 %>% mutate(
@@ -69,51 +85,79 @@ latinos_16$Identity_Imp <-relevel(as.factor(latinos_16$Identity_Imp),
 latinos_16$Identity_Importance <-relevel(as.factor(latinos_16$Identity_Importance), 
                                   ref = "Not at all Important")
 
+
+latinos_16$Border_Wall <- as.factor(latinos_16$Border_Wall)
+
 ## setting up the survey design --------
-svy_16<- svydesign(id = ~ 1, weights = ~V160101, data = latinos_16)
+svy_16<- svydesign(id = ~ V160201, weights = ~V160102, strata = ~ V160202, 
+                   nest = TRUE, survey.lonely.psu = "adjust",
+                   data = latinos_16)
 
 svy_20 <- svydesign(id = ~ 1, weights = ~V200010a, data = latinos20)
 
 # baseline models 2016  --- as OLS --------
+base_model <- svyglm(Border_Reordered ~ Age + Ideo_8 + Party_Cont +
+                       Education_Cont +
+                       I(p_born * g_born), data = latinos_16, design = svy_16)
 
-base_model <- svyglm(Border_Reordered ~ Age + Ideology + Party + Identity_Importance + 
-                    Gender + 
-                      Education +
-                      Migration_Dist, data = latinos_16, design = svy_16)
-base_model_fact <- svyglm(Border_Reordered ~ Age + Ideology + Party + Identity_Importance + 
-                       Gender + 
-                       Education +
-                         Migration_Dist_Factor, 
+base_model <- svyglm(Border_Reordered ~ Age + Ideo_8 + Party_Cont +
+                      Education_Cont +
+                      Migration_Dist_Add, data = latinos_16, design = svy_16)
+
+base_model_lang <- svyglm(Border_Reordered ~ Age + Ideo_8 + Party_Cont +
+                            Education_Cont +
+                            Migration_Lang_Add,
                        data = latinos_16, design = svy_16)
-base_ols <- lm(Border_Reordered ~ Age + Ideology + Party + Identity_Importance + 
-                            Education +
-                 Migration_Dist_Add_Scaled, 
+base_ols <- lm(Border_Reordered ~ Age + 
+                # Ideo_8 + Party_Cont +
+                 # Identity_Importance + 
+                            Education_Cont + 
+                 # Language + Latin_Country + 
+                 I(p_born^2 + g_born), 
                           data = latinos_16)
+base_ols_lang <- lm(Border_Reordered ~ Age + 
+                      # Ideo_8 + Party_Cont +
+                 # Identity_Importance + 
+                 Education_Cont + 
+                 # Language + Latin_Country + 
+                 Migration_Lang_Mult, 
+               data = latinos_16)
 
 ## Identity * Psych Dist 2016 -----------
+options(survey.adjust.domain.lonely=TRUE)
+options(survey.lonely.psu="adjust")
 
-psych_model <- svyglm(Border_Reordered ~ Age + Ideology + Party + 
-                       Gender +
-                        Education +
-                        Migration_Dist*Identity_Importance, data = latinos_16, 
-                       design = svy_16)
-psych_model_fact <- svyglm(Border_Reordered ~ Age + Ideology + Party + 
-                        Gender +
-                        Education +
-                         Migration_Dist_Factor*Identity_Importance, 
+psych_dist_fact <- svyglm(Border_Reordered ~ Age + Ideo_8 + Party_Cont + 
+                             Education_Cont + 
+                             Education +Identity_Importance + 
+                             Migration_Dist_Add*Attention_NewsMedia,
+                           data = latinos_16, 
+                           design = svy_16)
+
+psych_model_fact <- svyglm(Border_Reordered ~ Age + Ideo_8 + Party_Cont + 
+                             Education_Cont  + 
+                        Education +Identity_Importance + 
+                          Migration_Lang_Add*Attention_NewsMedia,
                        data = latinos_16, 
                        design = svy_16)
 summary(psych_model)
 
-psych_ols <- lm(Border_Reordered ~ Age + Party + Education + 
-                  Migration_Dist*Identity_Importance, data = latinos_16)
+psych_ols <- lm(Border_Reordered ~ Age + Ideo_8 + Party_Cont + Education_Cont + 
+                  Attention_to_Politics  + Economy_PastYear + 
+                  Latin_Country +
+                  Migration_Weighted*Identity_Importance, data = latinos_16)
+
+lang_ols <- lm(Border_Reordered ~ Age + Ideo_8 + Party_Cont + Education_Cont + 
+                 Identity_Importance + Attention_to_Politics +Economy_PastYear + 
+                 Latin_Country +
+                  Migration_Lang_Mult*Identity_Importance, data = latinos_16)
 summary(psych_ols)
 # printing table of both for initial findings
 
-stargazer(base_model,base_model_fact, psych_model, psych_model_fact,
+stargazer(base_model,base_model_lang, psych_dist_fact, psych_model_fact,
           type = "text", out = "intial_08.html")
 
-stargazer(base_ols,psych_ols, 
+stargazer(base_ols,base_ols_lang, psych_ols, lang_ols,
           type = "text", out = "ols_08.html")
 
 # baseline models 2020  --- as OLS --------
@@ -124,7 +168,7 @@ base_model_20 <- svyglm(V201426x ~ Age + Ideology + Party +
                      family = "gaussian", rescale = TRUE, design = svy_20)
 summary(base_model_20)
 
-psych_model_20 <- svyglm(V201426x ~ Age + Ideology + Party + 
+psych_model_20 <- svyglm(V201426x ~ Age + Ideology + Party +
                           Gender + Education + Economy_Past + 
                            Attention_Politics + Migration_Dist, 
                         data = latinos_20, 
