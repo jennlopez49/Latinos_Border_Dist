@@ -96,67 +96,114 @@ svy_16<- svydesign(id = ~ V160201, weights = ~V160102, strata = ~ V160202,
 svy_20 <- svydesign(id = ~ 1, weights = ~V200010a, data = latinos20)
 
 # baseline models 2016  --- as OLS --------
-base_model <- svyglm(Border_Reordered ~ Age + Ideo_8 + Party_Cont +
-                       Education_Cont +
-                       I(p_born * g_born), data = latinos_16, design = svy_16)
+# base_model <- svyglm(Border_Reordered ~ Age + Ideo_8 + Party_Cont +
+#                        Education_Cont +
+#                        I(p_born * g_born), data = latinos_16, design = svy_16)
 
 base_model <- svyglm(Border_Reordered ~ Age + Ideo_8 + Party_Cont +
                       Education_Cont +
                       Migration_Dist_Add, data = latinos_16, design = svy_16)
 
-base_model_lang <- svyglm(Border_Reordered ~ Age + Ideo_8 + Party_Cont +
-                            Education_Cont +
-                            Migration_Lang_Add,
-                       data = latinos_16, design = svy_16)
+# base_model_lang <- svyglm(Border_Reordered ~ Age + Ideo_8 + Party_Cont +
+#                             Education_Cont +
+#                             Migration_Lang_Add,
+#                        data = latinos_16, design = svy_16)
 base_ols <- lm(Border_Reordered ~ Age + 
-                # Ideo_8 + Party_Cont +
+                Ideo_8 + Party_Cont +
                  # Identity_Importance + 
                             Education_Cont + 
                  # Language + Latin_Country + 
-                 I(p_born^2 + g_born), 
+                 Migration_Dist_Add, 
                           data = latinos_16)
-base_ols_lang <- lm(Border_Reordered ~ Age + 
-                      # Ideo_8 + Party_Cont +
-                 # Identity_Importance + 
-                 Education_Cont + 
-                 # Language + Latin_Country + 
-                 Migration_Lang_Mult, 
-               data = latinos_16)
+# base_ols_lang <- lm(Border_Reordered ~ Age + 
+#                       # Ideo_8 + Party_Cont +
+#                  # Identity_Importance + 
+#                  Education_Cont + 
+#                  # Language + Latin_Country + 
+#                  Migration_Lang_Mult, 
+#                data = latinos_16)
 
 ## Identity * Psych Dist 2016 -----------
 options(survey.adjust.domain.lonely=TRUE)
 options(survey.lonely.psu="adjust")
 
-psych_dist_fact <- svyglm(Border_Reordered ~ Age + Ideo_8 + Party_Cont + 
-                             Education_Cont + 
-                             Education +Identity_Importance + 
-                             Migration_Dist_Add*Attention_NewsMedia,
+psych_dist_w <- svyglm(Border_Reordered ~ Age + Ideo_8 + Party_Cont + Education_Cont + 
+                         Economy_PastYear + Attention_to_Politics  +
+                         Latin_Country +
+                         Migration_Dist_Add*Latino_Identity,
                            data = latinos_16, 
                            design = svy_16)
 
-psych_model_fact <- svyglm(Border_Reordered ~ Age + Ideo_8 + Party_Cont + 
-                             Education_Cont  + 
-                        Education +Identity_Importance + 
-                          Migration_Lang_Add*Attention_NewsMedia,
+psych_att_w <- svyglm(Border_Reordered ~ Age + Ideo_8 + Party_Cont + Education_Cont + 
+                        Latino_Identity +Economy_PastYear + 
+                        Latin_Country +
+                        Migration_Dist_Add*Attention_to_Politics,
                        data = latinos_16, 
                        design = svy_16)
 summary(psych_model)
 
-psych_ols <- lm(Border_Short ~ Age + Ideo_8 + Party_Cont + Education_Cont + 
-                  Attention_NewsMedia  + Economy_PastYear + 
-                  # Latin_Country + 
+psych_ols <- lm(Border_Reordered ~ Age + Ideo_8 + Party_Cont + Education_Cont + 
+                 Economy_PastYear + Attention_to_Politics + 
+                  Latin_Country +
                   Migration_Dist_Add*Latino_Identity, data = latinos_16)
 
-lang_ols <- lm(Border_Reordered ~ Age + Ideo_8 + Party_Cont + Education_Cont + 
-                 Identity_Importance + Attention_to_Politics +Economy_PastYear + 
+att_ols <- lm(Border_Reordered ~ Age + Ideo_8 + Party_Cont + Education_Cont + 
+                Economy_PastYear + Latino_Identity +
                  Latin_Country +
-                  Migration_Lang_Mult*Latino_Identity, data = latinos_16)
+                Migration_Dist_Add*Attention_to_Politics, data = latinos_16)
 summary(psych_ols)
 # printing table of both for initial findings
 
-stargazer(base_model,base_model_lang, psych_dist_fact, psych_model_fact,
-          type = "text", out = "intial_08.html")
+stargazer(base_model,psych_dist_w, psych_att_w,
+          type = "text",   dep.var.labels = "Attitude Towards Border Wall"
+          ,
+          covariate.labels = c("Age", "Ideology", "Party",
+                               "Education",
+                               "Economy - Much Better",
+                               "Economy - Much Worse",
+                               "Economy - Somewhat Better",
+                               "Economy - Somewhat Worse",
+                               "Attention to Politics - Always",
+                               "Attention to Politics - Most of the time",
+                               "Attention to Politics - Never",
+                               "Attention to Politics - Some of the time",
+                               "Distance to Migration Experience|Attention to Politics - Always",
+                               "Distance to Migration Experience|Attention to Politics - Most of the time",
+                               "Distance to Migration Experience|Attention to Politics - Never",
+                               "Distance to Migration Experience|Attention to Politics - Some of the time",
+                               "Hispanic Ancestry - Mexican",
+                               "Hispanic Ancestry - Other/More than one",
+                               "Hispanic Ancestry - Puerto Rican",
+                               "Distance to Migration Experience",
+                               "Latino Identity",
+                               "Distance to Migration Experience|Latino Identity")
+          , out = "weighted_2016.html"
+          )
 
-stargazer(base_ols,base_ols_lang, psych_ols, lang_ols,
-          type = "text", out = "ols_08.html")
+stargazer(base_ols, psych_ols, att_ols,
+          type = "text",
+          dep.var.labels = "Attitude Towards Border Wall"
+          ,
+          covariate.labels = c("Age", "Ideology", "Party",
+                               "Education",
+                               "Economy - Much Better",
+                               "Economy - Much Worse",
+                               "Economy - Somewhat Better",
+                               "Economy - Somewhat Worse",
+                               "Attention to Politics - Always",
+                               "Attention to Politics - Most of the time",
+                               "Attention to Politics - Never",
+                               "Attention to Politics - Some of the time",
+                               "Distance to Migration Experience|Attention to Politics - Always",
+                               "Distance to Migration Experience|Attention to Politics - Most of the time",
+                               "Distance to Migration Experience|Attention to Politics - Never",
+                               "Distance to Migration Experience|Attention to Politics - Some of the time",
+                               "Hispanic Ancestry - Mexican",
+                               "Hispanic Ancestry - Other/More than one",
+                               "Hispanic Ancestry - Puerto Rican",
+                               "Distance to Migration Experience",
+                               "Latino Identity",
+                               "Distance to Migration Experience|Latino Identity")
+          , out = "ols_2016.html"
+          )
 
