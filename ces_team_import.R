@@ -20,4 +20,22 @@ lat_LSU <- subset(LSU_20, LSU_20$race == 3 | LSU_20$hispanic == 1)
 lat_UDE <- subset(UDE_20, UDE_20$race == 3 | UDE_20$hispanic == 1)
 lat_UMV <- subset(UMV_20, UMV_20$race == 3 | UMV_20$hispanic == 1)
 
-# subsetting to desired variables
+# seeing NA for the zips 
+lat_DAR_clean <- lat_DAR[!is.na(lat_DAR$inputzip),]
+lat_DKI_clean <- lat_DKI[!is.na(lat_DKI$inputzip),]
+lat_GWU_clean <- lat_GWU[!is.na(lat_GWU$inputzip),]
+lat_LSU_clean <- lat_LSU[!is.na(lat_LSU$inputzip),]
+lat_UDE_clean <- lat_UDE[!is.na(lat_UDE$inputzip),]
+lat_UMV_clean <- lat_UMV[!is.na(lat_UMV$inputzip),]
+
+### common content questions: Gender (gender), Education (educ), Economy in 
+### Past Year (CC20_302), Border wall (CC20_331e), Party (CC20_360), 
+### Ideology (ideo5)
+
+## CES20_DKI - racialidentity2 (important race is to identity), 
+### racialidentity1 (linked fate),
+
+## GWU417_2 - (proud to be of ethnic/racial group), 
+
+## GWU IS 2018 only 
+
