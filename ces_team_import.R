@@ -37,5 +37,10 @@ lat_UMV_clean <- lat_UMV[!is.na(lat_UMV$inputzip),]
 
 ## GWU417_2 - (proud to be of ethnic/racial group), 
 
-## GWU IS 2018 only 
+## DAR 2020 - mc_identity DAR316 - importance of identity for pol decisions 
+
+## UDE - raceid UDE430 - - imp race to identity 
+
+## LSU - Racial ID - LSU405 - imp race to identity 
+
 
