@@ -1,6 +1,9 @@
 ### CMPS import #######
 library(tidyverse)
 library(haven)
+library(measurements)
+library(survey)
+library(stargazer)
 
 cmps2020 <- read_dta("CMPS 2020 full adult sample weighted STATA.dta",
                      encoding = "UTF-8")
@@ -134,28 +137,98 @@ cmps_clean <- cmps_sub %>% mutate(Hispanic = ifelse(cmps_sub$S2_Racer2 == 1 |
 
 #### Matching Distance based on Zipcode 
 
-# importing zips 
+# importing zips --- NEAREST within 500 miles 
 zips_dist <- read_excel("USAZIPCodeAreas__Within500_TableToExcel.xlsx")
 zips_distance <- zips_dist[,c(4, 6, 32)]
 names(zips_distance) <- c("zips", "state", "distance_meters")
 
+
+## importing zips --- distance of CENTROIDS for all 
+
+cent_dist <- read.csv("centroids_zip_distance.csv")
+cent_zips <- cent_dist[,c(3,5,12)]
+names(cent_zips) <- c("zips", "State", "Centroid_Distance")
+length(unique(cent_dist$ZIP_CODE))
+
+### using 2020 zip shapefile - in meters 
+
+cent_dist_2020 <- read.csv("2020_zips_dist_meters.csv")
+cent_dist_sub <- cent_dist_2020[,c(1,11)]
+names(cent_dist_sub) <- c("zips", "Centroid_Distance")
+length(unique(cent_dist$ZIP_CODE))
+
+
+####### merging to see if they are the same 
+
+cent_combined <- inner_join(cent_zips, cent_dist_sub, by = "zips")
+length(unique(cent_combined$zips))
+
 # cleaning zips in cmps 
 cmps_clean$zips <- gsub("X", "", as.character(cmps_clean$S15), 
                         ignore.case = TRUE)
+cmps_clean$zips_no_zeros <- as.numeric(cmps_clean$zips)
+cmps_clean$zips <- as.numeric(cmps_clean$zips)
+
+### getting rid of alaska and hawaii for only contiguous US states 
+
+cmps_cleaned <- subset(cmps_clean, subset = !cmps_clean$State == 1)
+cmps_cleaned2 <- subset(cmps_clean, subset = !cmps_clean$State == 12)
+
 
 # matching -- distance data is only for respondents within 500 miles of the border
 full_cmps <- left_join(cmps_clean, zips_distance, by = "zips")
-sum(is.na(full_cmps$distance_meters))
+
+# centroids from the 2010 geo 
+full_cmps_zips <- left_join(cmps_clean, cent_zips, by = "zips_no_zeros")
+
+# centroids from 2020 
+
+full_cmps_2020 <- left_join(cmps_cleaned2, cent_dist_sub, by = "zips")
+
+
+
+## Checking NAs
+
+sum(is.na(full_cmps_2020$Centroid_Distance))
+checking_nas <- full_cmps_2020[is.na(full_cmps_2020$Centroid_Distance),]
+table(checking_nas$State)
+
+# converting meters to miles 
+full_cmps_2020$distance_km <- conv_unit(full_cmps_2020$Centroid_Distance, "m", "km")
 
 ##### Creating Latino Subset #########
 
-cmps_Lat_primary <- subset(full_cmps, subset = full_cmps$S2_Race_Prime == 2)
+full_cmps_2020$latino_ancestry <- ifelse(full_cmps_2020$S2_Racer2 == 2 |
+                                           full_cmps_2020$S2_Race_Prime == 2 |
+                                           full_cmps_2020$S2_Hispanicr2 == 1 | 
+                                           full_cmps_2020$S2_Hispanicr3 == 1 |
+                                           full_cmps_2020$S2_Hispanicr4 == 1, 1, 0)
+
+cmps_Lat_primary <- subset(full_cmps_2020, subset = full_cmps_2020$S2_Race_Prime == 2)
 
 # any ancestry to Latin America 
 
-cmps_latino_any <- full_cmps[c(full_cmps$S2_Racer2 == 2 |
-                                 full_cmps$S2_Race_Prime == 2 |
-                                 full_cmps$S2_Hispanicr2 == 1 | 
-                                 full_cmps$S2_Hispanicr3 == 1 |
-                                 full_cmps$S2_Hispanicr4 == 1),]
+cmps_latino_any <- subset(full_cmps_2020, subset = full_cmps_2020$latino_ancestry == 1)
+
+### excluding PR 
+
+latino_any_sub <- subset(cmps_latino_any, subset = !cmps_latino_any$Parents_Born == 3) 
+#### psychological distance vars 
+latino_any_sub$Parents_Born <- ifelse(latino_any_sub$Parents_Born == 88, NA,
+                                      latino_any_sub$Parents_Born)
+latino_any_sub$Grandparents_Born <- ifelse(latino_any_sub$Grandparents_Born == 88, NA,
+                                      latino_any_sub$Grandparents_Born)
+latino_any_sub <- latino_any_sub %>% mutate(
+  Parents_Born_Recoded = case_when(Parents_Born == 1 ~ 3,                       # Recoded so 3 - All in US, 2 - 1 in US, 1 - None in US 
+                                   Parents_Born == 2 ~ 2,
+                                   Parents_Born == 4 ~ 1),
+  Grandparents_Born_Recoded = case_when(Grandparents_Born == 1 ~ 5,
+                                        Grandparents_Born == 2 ~ 4,
+                                        Grandparents_Born == 3 ~ 3,
+                                        Grandparents_Born == 4 ~ 2,
+                                        Grandparents_Born == 5 ~ 1),
+  Psych_Distance = Parents_Born_Recoded + Grandparents_Born_Recoded
+)
+
+
 
