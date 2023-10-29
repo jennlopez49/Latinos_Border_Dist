@@ -28,12 +28,36 @@ cmps_sub <- cmps2020 %>% select(uuid, S2_Racer2, S2_Race_Prime, S2_Hispanicr2,
                                 Q560r1, Q560r2, Q560r3, Q560r4, 
                                 Q560r5, Q560r6, Q560r7, Q560r8, weight, Q271)
 
+## excluding MENA, AI/NA, NH, PI
+
+cmps_sub <- cmps_sub %>% filter(!c(S2_Race_Prime == 5 | S2_Race_Prime == 6 | S2_Race_Prime == 7 | S2_Race_Prime == 8))
+table(cmps_sub$S2_Race_Prime)
+
+### Making the Survey Weights Representative -- checking proportions
+
+svydes <- svydesign(id = ~ 1, weights = ~weight, data = cmps_sub)
+# checking 
+prop.table(svytable(~cmps_sub$S2_Race_Prime, svydes))
+
+# adjusting weight based on 2021 ACS estimates
+# 60.6% White non-Hispanic
+# 11.6% Black non-Hispanic
+# 6.02% Asian non-Hispanic
+# 0.511% AI/AN
+# 17.2% Hispanic or Latino
+# 4.09% Other or multiracial
+
+
 #### Cleaning ###### 
 cmps_clean <- cmps_sub %>% mutate(Hispanic = ifelse(cmps_sub$S2_Racer2 == 1 |
                                                       cmps_sub$S2_Race_Prime == 2 | 
                                                       cmps_sub$S2_Hispanicr2 == 2 |
                                                       cmps_sub$S2_Hispanicr3 == 3 | 
                                                       cmps_sub$S2_Hispanicr4 == 4, 1, 0),
+                                  race_weight = case_when(S2_Race_Prime == 1 ~ weight*(0.64/0.2345043),
+                                                          S2_Race_Prime == 2 ~ weight*(0.17/0.2455291),
+                                                          S2_Race_Prime == 3 ~ weight*(0.13/0.2817263),
+                                                          S2_Race_Prime == 4 ~ weight*(0.06/0.2382403)),
                                   Gender = case_when(S3b == 1 ~ 1,              # man
                                                      S3b == 2 ~ 2,              # woman
                                                      S3b == 3 ~ 3,              # other 
@@ -131,37 +155,49 @@ cmps_clean <- cmps_sub %>% mutate(Hispanic = ifelse(cmps_sub$S2_Racer2 == 1 |
                                   Spanish = Q816,                               # 1 - Very often, 5 - almost never
                                   Race_Imp = Q560r1,
                                   CulturalID_Imp = Q560r5,
-                                  American_Imp = Q560r8,
-                                  identity_strength = Q271                      # (All) 1 - most important, 8 - least important
+                                  American_Imp = case_when(Q560r8 == 8 ~ 1,     # Recoded so 1 is least imp, 8 is most 
+                                                           Q560r8 == 7 ~ 2,
+                                                           Q560r8 == 6 ~ 3,
+                                                           Q560r8 == 5 ~ 4,
+                                                           Q560r8 == 4 ~ 5,
+                                                           Q560r8 == 3 ~ 6,
+                                                           Q560r8 == 2 ~ 7,
+                                                           Q560r8 == 1 ~ 8),
+                                  identity_strength = Q271, # (All) 1 - most important, 5 - least important, recoded to flip 
+                                  identity_strength_recoded = case_when(Q271 == 1 ~ 5,
+                                                                        Q271 == 2 ~ 4,
+                                                                        Q271 == 3 ~ 3,
+                                                                        Q271 == 4 ~ 2,
+                                                                        Q271 == 5 ~ 1)
                                   ) 
 
 #### Matching Distance based on Zipcode 
 
-# importing zips --- NEAREST within 500 miles 
-zips_dist <- read_excel("USAZIPCodeAreas__Within500_TableToExcel.xlsx")
-zips_distance <- zips_dist[,c(4, 6, 32)]
-names(zips_distance) <- c("zips", "state", "distance_meters")
-
-
-## importing zips --- distance of CENTROIDS for all 
-
-cent_dist <- read.csv("centroids_zip_distance.csv")
-cent_zips <- cent_dist[,c(3,5,12)]
-names(cent_zips) <- c("zips", "State", "Centroid_Distance")
-length(unique(cent_dist$ZIP_CODE))
+# # importing zips --- NEAREST within 500 miles 
+# zips_dist <- read_excel("USAZIPCodeAreas__Within500_TableToExcel.xlsx")
+# zips_distance <- zips_dist[,c(4, 6, 32)]
+# names(zips_distance) <- c("zips", "state", "distance_meters")
+# 
+# 
+# ## importing zips --- distance of CENTROIDS for all 
+# 
+# cent_dist <- read.csv("centroids_zip_distance.csv")
+# cent_zips <- cent_dist[,c(3,5,12)]
+# names(cent_zips) <- c("zips", "State", "Centroid_Distance")
+# length(unique(cent_dist$ZIP_CODE))
 
 ### using 2020 zip shapefile - in meters 
 
 cent_dist_2020 <- read.csv("2020_zips_dist_meters.csv")
 cent_dist_sub <- cent_dist_2020[,c(1,11)]
 names(cent_dist_sub) <- c("zips", "Centroid_Distance")
-length(unique(cent_dist$ZIP_CODE))
 
 
-####### merging to see if they are the same 
 
-cent_combined <- inner_join(cent_zips, cent_dist_sub, by = "zips")
-length(unique(cent_combined$zips))
+# ####### merging to see if they are the same 
+# 
+# cent_combined <- inner_join(cent_zips, cent_dist_sub, by = "zips")
+# length(unique(cent_combined$zips))
 
 # cleaning zips in cmps 
 cmps_clean$zips <- gsub("X", "", as.character(cmps_clean$S15), 
@@ -176,50 +212,46 @@ cmps_cleaned2 <- subset(cmps_clean, subset = !cmps_clean$State == 12)
 
 
 # matching -- distance data is only for respondents within 500 miles of the border
-full_cmps <- left_join(cmps_clean, zips_distance, by = "zips")
-
-# centroids from the 2010 geo 
-full_cmps_zips <- left_join(cmps_clean, cent_zips, by = "zips_no_zeros")
+# full_cmps <- left_join(cmps_clean, zips_distance, by = "zips")
+# 
+# # centroids from the 2010 geo 
+# full_cmps_zips <- left_join(cmps_clean, cent_zips, by = "zips_no_zeros")
 
 # centroids from 2020 
 
 full_cmps_2020 <- left_join(cmps_cleaned2, cent_dist_sub, by = "zips")
 
 
+# 
+# ## Checking NAs
+# 
+# sum(is.na(full_cmps_2020$Centroid_Distance))
+# checking_nas <- full_cmps_2020[is.na(full_cmps_2020$Centroid_Distance),]
+# table(checking_nas$State)
 
-## Checking NAs
-
-sum(is.na(full_cmps_2020$Centroid_Distance))
-checking_nas <- full_cmps_2020[is.na(full_cmps_2020$Centroid_Distance),]
-table(checking_nas$State)
-
-# converting meters to miles 
+# converting meters to kilometers  
 full_cmps_2020$distance_km <- conv_unit(full_cmps_2020$Centroid_Distance, "m", "km")
 
-##### Creating Latino Subset #########
 
-full_cmps_2020$latino_ancestry <- ifelse(full_cmps_2020$S2_Racer2 == 2 |
-                                           full_cmps_2020$S2_Race_Prime == 2 |
-                                           full_cmps_2020$S2_Hispanicr2 == 1 | 
-                                           full_cmps_2020$S2_Hispanicr3 == 1 |
-                                           full_cmps_2020$S2_Hispanicr4 == 1, 1, 0)
+## Party State Majority 
 
-cmps_Lat_primary <- subset(full_cmps_2020, subset = full_cmps_2020$S2_Race_Prime == 2)
+party_maj <- read.csv("party_majority.csv")
 
-# any ancestry to Latin America 
+# merging 
 
-cmps_latino_any <- subset(full_cmps_2020, subset = full_cmps_2020$latino_ancestry == 1)
+full_cmps <- left_join(full_cmps_2020, party_maj, by = "State")
 
-### excluding PR 
+## Parents born "88" to NA 
 
-latino_any_sub <- subset(cmps_latino_any, subset = !cmps_latino_any$Parents_Born == 3) 
-#### psychological distance vars 
-latino_any_sub$Parents_Born <- ifelse(latino_any_sub$Parents_Born == 88, NA,
-                                      latino_any_sub$Parents_Born)
-latino_any_sub$Grandparents_Born <- ifelse(latino_any_sub$Grandparents_Born == 88, NA,
-                                      latino_any_sub$Grandparents_Born)
-latino_any_sub <- latino_any_sub %>% mutate(
-  Parents_Born_Recoded = case_when(Parents_Born == 1 ~ 3,                       # Recoded so 3 - All in US, 2 - 1 in US, 1 - None in US 
+full_cmps$Parents_Born <- ifelse(full_cmps$Parents_Born == 88, NA, 
+                                 full_cmps$Parents_Born)
+full_cmps$Grandparents_Born <- ifelse(full_cmps$Grandparents_Born == 88, NA,
+                                      full_cmps$Grandparents_Born)
+
+## Psych Dist 
+
+full_cmps <- full_cmps %>% mutate(
+  Parents_Born_Recoded = case_when(Parents_Born == 1 ~ 3,                       # Recoded so 3 - All in US, 2 - 1 in US, 1 - None in US
                                    Parents_Born == 2 ~ 2,
                                    Parents_Born == 4 ~ 1),
   Grandparents_Born_Recoded = case_when(Grandparents_Born == 1 ~ 5,
@@ -227,8 +259,44 @@ latino_any_sub <- latino_any_sub %>% mutate(
                                         Grandparents_Born == 3 ~ 3,
                                         Grandparents_Born == 4 ~ 2,
                                         Grandparents_Born == 5 ~ 1),
-  Psych_Distance = Parents_Born_Recoded + Grandparents_Born_Recoded
+  Psych_Distance = Parents_Born_Recoded + Grandparents_Born_Recoded,
+  Increase_Border_Spending = case_when(Increase_BorderSpend_Wall == 1 ~ 1,      # Recoded - 1 is Support, 0 is Oppose 
+                                       Increase_BorderSpend_Wall == 2 ~ 0),
+  Under_200_Miles = ifelse(distance_km < 321.869, 1, 0),
+  Under_100_Miles = ifelse(distance_km < 160.934, 1, 0)
 )
+
+## Subsetting to just Latinos 
+
+full_cmps_lat <- subset(full_cmps, subset = Hispanic == 1)
+
+## Dropping NAs in main Y 
+
+# full_cmps <- full_cmps %>% drop_na(Increase_Border_Spending, border_sec_first)
+
+# # any ancestry to Latin America 
+# 
+# cmps_latino_any <- subset(full_cmps_2020, subset = full_cmps_2020$latino_ancestry == 1)
+
+# ### excluding PR 
+# 
+# latino_any_sub <- subset(cmps_latino_any, subset = !cmps_latino_any$Parents_Born == 3) 
+# #### psychological distance vars 
+# latino_any_sub$Parents_Born <- ifelse(latino_any_sub$Parents_Born == 88, NA,
+#                                       latino_any_sub$Parents_Born)
+# latino_any_sub$Grandparents_Born <- ifelse(latino_any_sub$Grandparents_Born == 88, NA,
+#                                       latino_any_sub$Grandparents_Born)
+# latino_any_sub <- latino_any_sub %>% mutate(
+#   Parents_Born_Recoded = case_when(Parents_Born == 1 ~ 3,                       # Recoded so 3 - All in US, 2 - 1 in US, 1 - None in US 
+#                                    Parents_Born == 2 ~ 2,
+#                                    Parents_Born == 4 ~ 1),
+#   Grandparents_Born_Recoded = case_when(Grandparents_Born == 1 ~ 5,
+#                                         Grandparents_Born == 2 ~ 4,
+#                                         Grandparents_Born == 3 ~ 3,
+#                                         Grandparents_Born == 4 ~ 2,
+#                                         Grandparents_Born == 5 ~ 1),
+#   Psych_Distance = Parents_Born_Recoded + Grandparents_Born_Recoded
+# )
 
 
 
