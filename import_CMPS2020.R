@@ -4,6 +4,8 @@ library(haven)
 library(measurements)
 library(survey)
 library(stargazer)
+library(coefplot)
+library(sjPlot)
 
 cmps2020 <- read_dta("CMPS 2020 full adult sample weighted STATA.dta",
                      encoding = "UTF-8")
@@ -266,9 +268,11 @@ full_cmps <- full_cmps %>% mutate(
   Under_100_Miles = ifelse(distance_km < 160.934, 1, 0)
 )
 
-## Subsetting to just Latinos 
+## Subsetting to just Latinos & also getting rid of MN 
 
 full_cmps_lat <- subset(full_cmps, subset = Hispanic == 1)
+full_cmps_lat <- full_cmps_lat %>% filter(!(State == 24))
+
 
 ## Dropping NAs in main Y 
 
