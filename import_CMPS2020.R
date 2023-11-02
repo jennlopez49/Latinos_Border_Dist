@@ -1,11 +1,4 @@
 ### CMPS import #######
-library(tidyverse)
-library(haven)
-library(measurements)
-library(survey)
-library(stargazer)
-library(coefplot)
-library(sjPlot)
 
 cmps2020 <- read_dta("CMPS 2020 full adult sample weighted STATA.dta",
                      encoding = "UTF-8")

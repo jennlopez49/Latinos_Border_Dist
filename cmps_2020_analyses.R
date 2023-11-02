@@ -1,16 +1,4 @@
-#### preliminary analyses 
-
-## Setting up Multiple DVs 
-dvs <- c( "Increase_Border_Spending"
-          # , "border_sec_first"
-          #,
-
-         # , "Belong_USSociety",
-         # "Accepted_Included_USSoc", "Value_Respect_inUSSoc"
-         )
-
-
-## IVs 
+## IVs --------
 ivs <- list()
 ivs[[1]] <- c("distance_km", "Party_5pt", 
               "Education", "Age", "Income", "party_majority_state")
@@ -19,55 +7,40 @@ ivs[[2]] <- c("Psych_Distance", "Party_5pt",
 ivs[[3]] <- c("distance_km", "Psych_Distance", "Party_5pt",
             "Education", "Age", "Income", "party_majority_state")
 ivs[[4]] <- c("distance_km*Psych_Distance", "Linked_Fate", "Party_5pt",
-              "Education", "Mexican", "Age", "Income", "Spanish", "party_majority_state")
+              "Education", "Mexican", "Age", "Income", "Spanish", 
+              "party_majority_state")
 ivs[[5]] <- c("distance_km*Linked_Fate", "Psych_Distance", "Party_5pt",
-         "Education", "Mexican", "Age", "Income", "Spanish", "party_majority_state")
-ivs[[6]] <- c("distance_km*identity_strength_recoded", "Psych_Distance", "Party_5pt",
-            "Education", "Mexican", "Age", "Income", "distance_km", "party_majority_state")
-ivs[[7]] <- c("Psych_Distance*identity_strength_recoded", "Psych_Distance", "Party_5pt",
-              "Education", "Mexican", "Age", "Income", "Spanish", "party_majority_state")
+         "Education", "Mexican", "Age", "Income", "Spanish", 
+         "party_majority_state")
+ivs[[6]] <- c("distance_km*identity_strength_recoded", "Psych_Distance", 
+              "Party_5pt", "Education", "Mexican", "Age", "Income", 
+              "distance_km", "party_majority_state")
+ivs[[7]] <- c("Psych_Distance*identity_strength_recoded", "Psych_Distance", 
+              "Party_5pt", "Education", "Mexican", "Age", "Income", "Spanish",
+              "party_majority_state")
 ivs[[8]] <- c("Psych_Distance*Linked_Fate", "Psych_Distance", "Party_5pt",
-              "Education", "Mexican", "Age", "distance_km", "Spanish", "party_majority_state")
-# ivs[[7]] <- c("distance_km*American_Imp", "Psych_Distance", "Party_5pt",
-#               "Education", "Mexican", "Age", "Income", "Spanish", "party_majority_state")
-# # ivs[[7]] <- c("distance_km*Linked_Fate", "Psych_Distance", "Party_5pt",
-#               "Education", "Mexican", "Age", "Income", "Spanish")
-# ivs[[8]] <- c("distance_km*Linked_Fate", "Psych_Distance", "Party_5pt",
-#               "Education", "Mexican", "Age", "Income", "Spanish")
-# ivs[[9]] <- c("distance_km*Linked_Fate", "Psych_Distance", "Party_5pt",
-#               "Education", "Mexican", "Age", "Income", "Spanish", "Remit", 
-#               "ImmEnf_Enc_PosNeg")
-# ivs[[10]] <- c("distance_km*Psych_Distance", "Party_5pt",
-#               "Education", "Age", "Income", "identity_strength")
-## Survey Design Weight Object -- 
+              "Education", "Mexican", "Age", "distance_km", "Spanish", 
+              "party_majority_state")
+
+## Survey Design Weight Object -----
 
 svy_cmps <- svydesign(id = ~ 1, weights = ~race_weight, data = full_cmps_lat)
 
-# # trying to subset overall 
-# subset_des <- subset(svy_cmps, subset = "Hispanic" == 1)
+# running the regressions - - ------
 
+bin_runs <- bin_function(dvs_binomial, ivs, svy_cmps, full_cmps_lat, "bin_runs")
 
-### prelim --- survey package
-lm_mods1 <- list()
+ols_runs <- ols_function(dvs_ols, ivs, svy_cmps, full_cmps_lat, "ols_runs_full")
 
-for (Y in dvs) {
-  mod1 <- list()
-  for (i in 1:length(ivs)) {
-    form <- as.formula(paste(Y, " ~ ", paste(ivs[[i]], collapse = " + ")))
-    mod1[[i]] <- svyglm(form, design = svy_cmps, family = "binomial") 
-    
-    
-  }
-  lm_mods1[[Y]] <- mod1
-}
+### visualizing int ------
 
-stargazer(lm_mods1$Increase_Border_Spending, type = "text")
+plot_model(bin_runs$Increase_Border_Spending[[6]], type = "int", 
+           legend.title = "Identity Strength")
+stargazer(ols_runs_full, type = "text")
 
-plot_model(lm_mods1$Increase_Border_Spending[[6]], type = "int")
+## tables for full samples ------------
 
-## tables for full samples 
-
-stargazer(lm_mods1$border_sec_first[c(1:6)], type = "text",
+stargazer(ols_runs_full, type = "text",
           covariate.labels = c("Distance (in km)", "Identity Strength",
                                "Psychological Distance", "Linked Fate",
                                "Party", "Education", "Mexican", "Age",
@@ -76,11 +49,13 @@ stargazer(lm_mods1$border_sec_first[c(1:6)], type = "text",
                                "Distance (in km):Psychological Distance",
                                "Distance (in km):Linked Fate",
                                "Distance (in km): Identity Strength",
+                               "Psychological Distance:Linked Fate",
+                               "Psychological Distance: Identity Strength",
                                "Constant"),
           dep.var.labels = "Increase Border Security as a National Priority",
           out = "table_2_full.html")
 
-stargazer(lm_mods1$Increase_Border_Spending[c(1:6)], type = "text", 
+stargazer(bin_runs$Increase_Border_Spending, type = "text", 
           covariate.labels = c("Distance (in km)", "Identity Strength",
                                "Psychological Distance", "Linked Fate",
                                "Party", "Education", "Mexican", "Age",
@@ -89,86 +64,37 @@ stargazer(lm_mods1$Increase_Border_Spending[c(1:6)], type = "text",
                                "Distance (in km):Psychological Distance",
                                "Distance (in km):Linked Fate",
                                "Distance (in km): Identity Strength",
+                               "Psychological Distance:Linked Fate",
+                               "Psychological Distance: Identity Strength",
                                "Constant"),
           dep.var.labels = "Increase Border Spending, Including Wall",
           out = "table_1_full.html")
 
-# stargazer(lm_mods1$Belong_USSociety, type = "text")
-# 
-# stargazer(lm_mods1$Accepted_Included_USSoc, type = "text")
-# 
-# stargazer(lm_mods1$Value_Respect_inUSSoc, type = "text")
 
 
-### subset to under 200 miles (in kilometers) & under 100 
+### subset to under 200 miles (in kilometers) & under 100 ---------------
 
 lat_200 <- subset(full_cmps_lat, subset = full_cmps_lat$distance_km < 321.869)
 lat_100 <- subset(full_cmps_lat, subset = full_cmps_lat$distance_km < 160.934)
 
-### 
+### survey objects -------
 
 svy_cmps_200 <- svydesign(id = ~ 1, weights = ~race_weight, data = lat_200)
 
 svy_cmps_100 <- svydesign(id = ~ 1, weights = ~race_weight, data = lat_100)
 
-
-mods_200 <- list()
-
-for (Y in dvs) {
-  mod2 <- list()
-  for (i in 1:length(ivs)) {
-    form <- as.formula(paste(Y, " ~ ", paste(ivs[[i]], collapse = " + ")))
-    mod2[[i]] <- svyglm(form, design = svy_cmps_200) 
-    
-    
-  }
-  mods_200[[Y]] <- mod2
-}
+####### subset regressions ---------
+under_200 <- bin_function(dvs_binomial, ivs, svy_cmps_200, lat_200, "runs_200")
 
 
-mods_100 <- list()
+under_200_ols <- ols_function(dvs_ols, ivs, svy_cmps_200, lat_200, 
+                              "runs_200_ols")
+under_100 <- bin_function(dvs_binomial, ivs, svy_cmps_100, lat_100, "runs_100")
+under_100_ols <- ols_function(dvs_ols, ivs, svy_cmps_100, lat_100, 
+                              "runs_100_ols")
 
-for (Y in dvs) {
-  mod_100 <- list()
-  for (i in 1:length(ivs)) {
-    form <- as.formula(paste(Y, " ~ ", paste(ivs[[i]], collapse = " + ")))
-    mod_100[[i]] <- svyglm(form, design = svy_cmps_100, family = "binomial") 
-    
-    
-  }
-  mods_100[[Y]] <- mod_100
-}
-
-### tables for 200 mile subset 
-stargazer(mods_200$border_sec_first, type = "text")
-
-stargazer(mods_200$Increase_Border_Spending, type = "text")
-
-# stargazer(mods_200$Belong_USSociety, type = "text")
-# 
-# stargazer(mods_200$Accepted_Included_USSoc, type = "text")
-# 
-# stargazer(mods_200$Value_Respect_inUSSoc, type = "text")
-
-
-### tables for 100 mile subset 
-stargazer(mods_100$border_sec_first, type = "text",
-          covariate.labels = c("Distance (in km) Logged", "Identity Strength",
-                               "Psychological Distance", "Linked Fate",
-                               "Party", "Education", "Mexican", "Age",
-                               "Income", "Spanish", 
-                               "State Leg Partisan Majority - Divided",
-                               "State Leg Partisan Majority - Rep",
-                               "Distance (in km) Logged:Psychological Distance",
-                               "Distance (in km) Logged:Linked Fate",
-                               "Distance (in km) Logged: Identity Strength",
-                               "Psychological Distance: Identity Strength",
-                               "Psychological Distance: Linked Fate",
-                               "Constant"),
-          dep.var.labels = "Increase Border Security as a National Priority",
-          out = "table_100_IncreaseBorderSec.html")
-
-stargazer(mods_100$Increase_Border_Spending, type = "text",
+### tables for 200 mile subset -------
+stargazer(under_200, type = "text",
           covariate.labels = c("Distance (in km)", "Identity Strength",
                                "Psychological Distance", "Linked Fate",
                                "Party", "Education", "Mexican", "Age",
@@ -182,17 +108,59 @@ stargazer(mods_100$Increase_Border_Spending, type = "text",
                                "Psychological Distance: Linked Fate",
                                "Constant"),
           dep.var.labels = "Increase Border Spending, Including Wall",
-          out = "table_100_IncreaseBorderSpend.html")
+          out = "table_200_IncreaseBorderSpend.html")
 
-# stargazer(mods_100$Belong_USSociety, type = "text")
-# 
-# stargazer(mods_100$Accepted_Included_USSoc, type = "text")
-# 
-# stargazer(mods_100$Value_Respect_inUSSoc, type = "text")
+stargazer(under_200_ols, type = "text",
+          covariate.labels = c("Distance (in km)", "Identity Strength",
+                               "Psychological Distance", "Linked Fate",
+                               "Party", "Education", "Mexican", "Age",
+                               "Income", "Spanish", 
+                               # "State Leg Partisan Majority - Divided",
+                               "State Leg Partisan Majority - Rep",
+                               "Distance (in km):Psychological Distance",
+                               "Distance (in km):Linked Fate",
+                               "Distance (in km): Identity Strength",
+                               "Psychological Distance: Identity Strength",
+                               "Psychological Distance: Linked Fate",
+                               "Constant"),
+          dep.var.labels = "Increase Border Security as a National Priority",
+          out = "table_200_IncreaseBorderSec.html")
 
+stargazer(under_100$Increase_Border_Spending, type = "text",
+          covariate.labels = c("Distance (in km)", "Identity Strength",
+                               "Psychological Distance", "Linked Fate",
+                               "Party", "Education", "Mexican", "Age",
+                               "Income", "Spanish", 
+                               # "State Leg Partisan Majority - Divided",
+                               "State Leg Partisan Majority - Rep",
+                               "Distance (in km):Psychological Distance",
+                               "Distance (in km):Linked Fate",
+                               "Distance (in km): Identity Strength",
+                               "Psychological Distance: Identity Strength",
+                               "Psychological Distance: Linked Fate",
+                               "Constant"),
+          dep.var.labels = "Increase Border Spending, Including Wall",
+          out = "table_100_IncreaseBorderSpend.html"
+          )
+summary(under_100$Increase_Border_Spending[[1]])
+stargazer(under_100_ols, type = "text",
+          covariate.labels = c("Distance (in km) Logged", "Identity Strength",
+                     "Psychological Distance", "Linked Fate",
+                     "Party", "Education", "Mexican", "Age",
+                     "Income", "Spanish", 
+                     "State Leg Partisan Majority - Divided",
+                     "State Leg Partisan Majority - Rep",
+                     "Distance (in km) Logged:Psychological Distance",
+                     "Distance (in km) Logged:Linked Fate",
+                     "Distance (in km) Logged: Identity Strength",
+                     "Psychological Distance: Identity Strength",
+                     "Psychological Distance: Linked Fate",
+                     "Constant"),
+          dep.var.labels = "Increase Border Security as a National Priority",
+          out = "table_100_IncreaseBorderSec.html")
 
-# plots 
+###### visualizing int 
 
-library(sjPlot)
+plot_model(under_100$Increase_Border_Spending[[7]], type = "int",
+           legend.title = "Identity Strength")
 
-plot_model(lm_mods1$Increase_Border_Spending[[6]], type = "int")
