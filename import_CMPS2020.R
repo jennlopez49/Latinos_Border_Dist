@@ -21,7 +21,8 @@ cmps_sub <- cmps2020 %>% select(uuid, S2_Racer2, S2_Race_Prime, S2_Hispanicr2,
                                 Q794r5, Q794r6,Q807, Q807, Q807r8oe, 
                                 Q808, Q809, Q812, Q813, Q814, Q816, 
                                 Q560r1, Q560r2, Q560r3, Q560r4, 
-                                Q560r5, Q560r6, Q560r7, Q560r8, weight, Q271)
+                                Q560r5, Q560r6, Q560r7, Q560r8, weight, Q271, 
+                                Q478_Q483r4)
 
 ## excluding MENA, AI/NA, NH, PI
 
@@ -163,7 +164,8 @@ cmps_clean <- cmps_sub %>% mutate(Hispanic = ifelse(cmps_sub$S2_Racer2 == 1, 1,
                                                                         Q271 == 2 ~ 4,
                                                                         Q271 == 3 ~ 3,
                                                                         Q271 == 4 ~ 2,
-                                                                        Q271 == 5 ~ 1)
+                                                                        Q271 == 5 ~ 1),
+                                  Full_Citizen = Q478_Q483r4
                                   ) 
 
 #### Matching Distance based on Zipcode 
@@ -284,7 +286,25 @@ full_cmps <- full_cmps %>% mutate(
                                       border_sec_first == 3 ~ 3,
                                       border_sec_first == 4 ~ 2,
                                       border_sec_first == 5 ~ 1),
-  psych_dist_lang = psych_dist_imm + Spanish
+  psych_dist_lang = psych_dist_imm + Spanish,
+  Belong_US = case_when(Belong_USSociety == 1 ~ 3,
+                        Belong_USSociety == 2 ~ 2,
+                        Belong_USSociety == 3 ~ 1),
+  Accepted_US = case_when(Accepted_Included_USSoc == 1 ~ 3,
+                          Accepted_Included_USSoc == 2 ~ 2,
+                          Accepted_Included_USSoc == 3 ~ 1),
+  Value_US = case_when(Value_Respect_inUSSoc == 1 ~ 3,
+                       Value_Respect_inUSSoc == 2 ~ 2,
+                       Value_Respect_inUSSoc == 3 ~ 1),
+  Full_Cit = case_when(Full_Citizen == 1 ~ 3,
+                       Full_Citizen == 2 ~ 3,
+                       Full_Citizen == 3 ~ 3,
+                       Full_Citizen == 4 ~ 2,
+                       Full_Citizen == 5 ~ 1,
+                       Full_Citizen == 6 ~ 1,
+                       Full_Citizen == 7 ~ 1),
+  citizenship_exp = Belong_US + Accepted_US + Value_US,
+  citizenship_ext = citizenship_exp + Full_Cit
 )
 
 ## Subsetting to just Latinos & also getting rid of MN 

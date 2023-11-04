@@ -13,8 +13,7 @@ dvs_ols <- c("border_security_recoded")
 
 dvs_binomial <- c("Increase_Border_Spending")
 
-dvs_american <- c("Belong_USSociety", "Accepted_Included_USSoc", 
-                  "Value_Respect_inUSSoc")
+dvs_american <- c("citizenship_exp", "citizenship_ext", "Full_Citizen")
 
 ########## Binomial and OLS functions ##########################################
 
@@ -29,7 +28,7 @@ for (Y in dv) {
   }
   lm_mods1[[Y]] <- mod1
 }
-assign(out, mod1, envir = .GlobalEnv)
+assign(out, lm_mods1, envir = .GlobalEnv)
 }
 
 bin_function <- function(dv, vars, des, dat, out){
