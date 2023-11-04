@@ -44,11 +44,11 @@ prop.table(svytable(~cmps_sub$S2_Race_Prime, svydes))
 
 
 #### Cleaning ###### 
-cmps_clean <- cmps_sub %>% mutate(Hispanic = ifelse(cmps_sub$S2_Racer2 == 1 |
-                                                      cmps_sub$S2_Race_Prime == 2 | 
-                                                      cmps_sub$S2_Hispanicr2 == 2 |
-                                                      cmps_sub$S2_Hispanicr3 == 3 | 
-                                                      cmps_sub$S2_Hispanicr4 == 4, 1, 0),
+cmps_clean <- cmps_sub %>% mutate(Hispanic = ifelse(cmps_sub$S2_Racer2 == 1, 1, 
+                                                    ifelse(cmps_sub$S2_Race_Prime == 2, 1,
+                                                      ifelse(cmps_sub$S2_Hispanicr2 == 2,1, 
+                                                          ifelse(cmps_sub$S2_Hispanicr3 == 3, 1, 
+                                                                 ifelse(cmps_sub$S2_Hispanicr4 == 4, 1, 0))))),
                                   race_weight = case_when(S2_Race_Prime == 1 ~ weight*(0.64/0.2345043),
                                                           S2_Race_Prime == 2 ~ weight*(0.17/0.2455291),
                                                           S2_Race_Prime == 3 ~ weight*(0.13/0.2817263),
@@ -258,14 +258,40 @@ full_cmps <- full_cmps %>% mutate(
   Increase_Border_Spending = case_when(Increase_BorderSpend_Wall == 1 ~ 1,      # Recoded - 1 is Support, 0 is Oppose 
                                        Increase_BorderSpend_Wall == 2 ~ 0),
   Under_200_Miles = ifelse(distance_km < 321.869, 1, 0),
-  Under_100_Miles = ifelse(distance_km < 160.934, 1, 0)
+  Under_100_Miles = ifelse(distance_km < 160.934, 1, 0),
+  linked_simp = case_when(Linked_Fate == 1 ~ 1,
+                       Linked_Fate == 2 ~ 1,
+                       Linked_Fate == 3 ~ 1,
+                       Linked_Fate == 4 ~ 2,
+                       Linked_Fate == 5 ~ 2),
+  id_simp = case_when(identity_strength == 1 ~ 1,
+                      identity_strength == 2 ~ 1,
+                      identity_strength == 3 ~ 0,
+                      identity_strength == 4 ~ 0,
+                      identity_strength == 5 ~ 0),
+  psych_dist_imm = Psych_Distance + Imm_Comm,
+  dist_sqd = distance_km^2,
+  California = ifelse(State == 5, 1 ,0),
+  Texas = ifelse(State == 44, 1 ,0),
+  Arizona = ifelse(State == 3, 1, 0),
+  New_Mexico = ifelse(State == 32, 1, 0),
+  border_state = ifelse(State == 5, 1, 
+                        ifelse(State == 44, 1 ,
+                               ifelse(State == 3, 1,
+                                      ifelse(State == 32, 1, 0)))),
+  border_security_recoded = case_when(border_sec_first == 1 ~ 5,
+                                      border_sec_first == 2 ~ 4,
+                                      border_sec_first == 3 ~ 3,
+                                      border_sec_first == 4 ~ 2,
+                                      border_sec_first == 5 ~ 1),
+  psych_dist_lang = psych_dist_imm + Spanish
 )
 
 ## Subsetting to just Latinos & also getting rid of MN 
 
 full_cmps_lat <- subset(full_cmps, subset = Hispanic == 1)
 full_cmps_lat <- full_cmps_lat %>% filter(!(State == 24))
-
+full_cmps_lat$linked <- as.numeric(full_cmps_lat$Linked_Fate)
 
 ## Dropping NAs in main Y 
 
