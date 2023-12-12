@@ -6,6 +6,7 @@ library(survey)
 library(stargazer)
 library(coefplot)
 library(sjPlot)
+library(splines)
 
 ######### Dependent Variables ######## 
 
@@ -38,7 +39,7 @@ bin_function <- function(dv, vars, des, dat, out){
     b_mod <- list()
     for (i in 1:length(vars)) {
       form <- as.formula(paste(Y, " ~ ", paste(vars[[i]], collapse = " + ")))
-      b_mod[[i]] <- svyglm(form, design = des, family = "quasibinomial", data = dat) 
+      b_mod[[i]] <- svyglm(form, design = des, family = "binomial", data = dat) 
     }
     bin_mods[[Y]] <- b_mod
   }

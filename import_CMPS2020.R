@@ -313,33 +313,17 @@ full_cmps_lat <- subset(full_cmps, subset = Hispanic == 1)
 full_cmps_lat <- full_cmps_lat %>% filter(!(State == 24))
 full_cmps_lat$linked <- as.numeric(full_cmps_lat$Linked_Fate)
 
-## Dropping NAs in main Y 
-
-# full_cmps <- full_cmps %>% drop_na(Increase_Border_Spending, border_sec_first)
-
-# # any ancestry to Latin America 
-# 
-# cmps_latino_any <- subset(full_cmps_2020, subset = full_cmps_2020$latino_ancestry == 1)
-
-# ### excluding PR 
-# 
-# latino_any_sub <- subset(cmps_latino_any, subset = !cmps_latino_any$Parents_Born == 3) 
-# #### psychological distance vars 
-# latino_any_sub$Parents_Born <- ifelse(latino_any_sub$Parents_Born == 88, NA,
-#                                       latino_any_sub$Parents_Born)
-# latino_any_sub$Grandparents_Born <- ifelse(latino_any_sub$Grandparents_Born == 88, NA,
-#                                       latino_any_sub$Grandparents_Born)
-# latino_any_sub <- latino_any_sub %>% mutate(
-#   Parents_Born_Recoded = case_when(Parents_Born == 1 ~ 3,                       # Recoded so 3 - All in US, 2 - 1 in US, 1 - None in US 
-#                                    Parents_Born == 2 ~ 2,
-#                                    Parents_Born == 4 ~ 1),
-#   Grandparents_Born_Recoded = case_when(Grandparents_Born == 1 ~ 5,
-#                                         Grandparents_Born == 2 ~ 4,
-#                                         Grandparents_Born == 3 ~ 3,
-#                                         Grandparents_Born == 4 ~ 2,
-#                                         Grandparents_Born == 5 ~ 1),
-#   Psych_Distance = Parents_Born_Recoded + Grandparents_Born_Recoded
-# )
 
 
+## Subset down to main IVs 
 
+cmps_lat <- full_cmps_lat %>% select(distance_km, psych_dist_lang, Party_5pt,
+                                     Education, Age, Income, race_weight,
+                                     linked, linked_simp, identity_strength_recoded,
+                                     id_simp, Increase_Border_Spending,
+                                     border_sec_first, Q812, Q809)
+sum(is.na(full_cmps_lat$psych_dist))
+
+
+#### GRANDPARENT NAs 
+na_match <- is.na(full_cmps_lat) == is.na(df$question2)
