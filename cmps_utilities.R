@@ -9,6 +9,7 @@ library(sjPlot)
 library(splines)
 library(patchwork)
 library(car)
+library(margins)
 
 ######### Dependent Variables ######## 
 
