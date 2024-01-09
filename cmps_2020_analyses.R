@@ -113,21 +113,29 @@ short_ivs <- list()
 
 short_ivs[[1]] <- c("distance_km","Party_5pt", "linked",
                   "Education", "Age", "Income")
-short_ivs[[2]] <- c("psych_dist_lang","Party_5pt", "linked",
+short_ivs[[2]] <- c("dist_sqd","Party_5pt", "linked",
                     "Education", "Age", "Income")
-short_ivs[[3]] <- c("distance_km*linked",
+short_ivs[[3]] <- c("psych_dist_lang","Party_5pt", "linked",
+                    "Education", "Age", "Income")
+short_ivs[[4]] <- c("distance_km*linked",
+                    "Party_5pt", "Education", "Age", "Income")
+short_ivs[[5]] <- c("dist_sqd*linked",
                     "Party_5pt", "Education", "Age", "Income")
 # short_ivs[[3]] <- c("distance_km*identity_strength_recoded",
 #                     "Party_5pt", "Education", "Age", "Income")
-short_ivs[[4]] <- c("distance_km*psych_dist_lang", "linked", "Party_5pt",
+short_ivs[[6]] <- c("distance_km*psych_dist_lang", "linked", "Party_5pt",
                   "Education", "Age", "Income")
-short_ivs[[5]] <- c("psych_dist_lang*linked", "Party_5pt",
+short_ivs[[7]] <- c("dist_sqd*psych_dist_lang", "linked", "Party_5pt",
+                    "Education", "Age", "Income")
+short_ivs[[8]] <- c("psych_dist_lang*linked", "Party_5pt",
                     "Education", "Age", "Income")
 # short_ivs[[5]] <- c("distance_km*psych_dist_lang", "identity_strength_recoded", 
 #                     "Party_5pt", "Education", "Age", "Income")
 # short_ivs[[6]] <- c("distance_km*psych_dist_lang*identity_strength_recoded",
 #                     "Party_5pt","Education", "Age")
-short_ivs[[6]] <- c("distance_km*psych_dist_lang*linked", "Party_5pt",
+short_ivs[[9]] <- c("distance_km*psych_dist_lang*linked", "Party_5pt",
+                    "Education", "Age")
+short_ivs[[10]] <- c("dist_sqd*psych_dist_lang*linked", "Party_5pt",
                     "Education", "Age")
 
 
@@ -184,28 +192,31 @@ dist_models[[5]] <- c("distance_km*Inclusive*linked", "Republican",
                       "Education", "Age", "Income", "Immigrant")
 
 ## Survey Design Weight Object & FULL regs  -----
+latino_cmps <- full_cmps_lat %>% filter(distance_km < 965.606)
+svy_cmps <- svydesign(id = ~ 1, weights = ~race_weight, data = latino_cmps)
 
-svy_cmps <- svydesign(id = ~ 1, weights = ~race_weight, data = full_cmps_lat)
-
-bin_function(dvs_binomial, short_ivs, cmps500, miles_500, "full_bin")
-ols_function(dvs_ols, short_ivs, cmps500, miles_500, "full_ols")
-stargazer(full_bin, type = "latex",
-          dep.var.labels = "Increase Border Spending, Including A Border Wall",
-          covariate.labels = c("Distance (in km)",
-                               "Psych. Distance",
-                               "Party", 
-                               # "Linked Fate: Psych. Distance",
-                               # "Distance (in km): Linked Fate: Psych. Distance",
-                               "Linked Fate",
-                               # "Identity Strength: Psych. Distance",
-                               # "Identity Strength",
-                               "Education","Age",
-                               "Income",
-                               "Distance (in km): Linked Fate",
-                               "Distance (in km): Psych. Distance",
-                               "Psych. Distance: Linked Fate",
-                               "Distance (in km): Psych. Distance: Linked Fate",
-                               "Constant")
+bin_function(dvs_binomial, short_ivs, svy_cmps, latino_cmps, "full_bin")
+ols_function(dvs_ols, short_ivs, svy_cmps, latino_cmps, "full_ols")
+stargazer(full_bin$Increase_Border_Spending[1:2], 
+          full_ols$border_security_recoded[1:2], type = "latex",
+          dep.var.labels = c("Increase Border Spending, Including A Border Wall",
+                             "Border Security as a National Priority")
+          # ,
+          # covariate.labels = c("Distance (in km)",
+          #                      "Psych. Distance",
+          #                      "Party", 
+          #                      # "Linked Fate: Psych. Distance",
+          #                      # "Distance (in km): Linked Fate: Psych. Distance",
+          #                      "Linked Fate",
+          #                      # "Identity Strength: Psych. Distance",
+          #                      # "Identity Strength",
+          #                      "Education","Age",
+          #                      "Income",
+          #                      "Distance (in km): Linked Fate",
+          #                      "Distance (in km): Psych. Distance",
+          #                      "Psych. Distance: Linked Fate",
+          #                      "Distance (in km): Psych. Distance: Linked Fate",
+          #                      "Constant")
 )
 
 stargazer(full_ols, type = "latex",
@@ -526,6 +537,25 @@ stargazer(dem_runs_sec, type = "latex",
 )
 
 
+### Table to compare to White base models 
+bind_base <- list(dem_runs$Increase_Border_Spending[[1]], 
+                 dem_runs$Increase_Border_Spending[[2]])
+binr_base <- list(rep_runs$Increase_Border_Spending[[1]], 
+                  rep_runs$Increase_Border_Spending[[2]])
+olsd_base <- list(dem_runs_sec$border_security_recoded[[1]],
+                  dem_runs_sec$border_security_recoded[[2]])
+olsr_base <- list(rep_runs_sec$border_security_recoded[[1]],
+                  rep_runs_sec$border_security_recoded[[2]])
+
+stargazer(bind_base,binr_base, type = "latex", 
+          dep.var.labels = c("Increase Border Spending"),
+          column.labels = c(
+          "Most Inc.", "Most Inc.", "Least Inc.", "Least Inc."))
+
+stargazer(olsd_base,olsr_base, type = "latex", 
+          dep.var.labels = c("Make Border Security a National Priority"),
+          column.labels = c(
+            "Most Inc.", "Most Inc.", "Least Inc.", "Least Inc."))
 
 #### BORDER VS NON BORDER  ----------------
 
