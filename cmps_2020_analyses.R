@@ -85,7 +85,7 @@ ivs[[11]] <- c("distance_km*id_simp", "psych_dist_lang",
 #               "Education", "Age", "Income", "party_majority_state")
 
 
-######## FINAL LIST OF MODELS --------------------------------------------------
+######## COMPLICATED/3wayINT LIST OF MODELS --------------------------------------------------
 rev_ivs <- list()
 
 rev_ivs[[1]] <- c("distance_km", "psych_dist_lang", "Party_5pt",
@@ -109,10 +109,123 @@ rev_ivs[[8]] <- c("distance_km*psych_dist_lang*identity_strength_recoded",
 rev_ivs[[9]] <- c("distance_km*linked*psych_dist_lang", "Party_5pt",
                   "Education", "Age")
 
-## Survey Design Weight Object -----
+short_ivs <- list()
+
+short_ivs[[1]] <- c("distance_km","Party_5pt", "linked",
+                  "Education", "Age", "Income")
+short_ivs[[2]] <- c("psych_dist_lang","Party_5pt", "linked",
+                    "Education", "Age", "Income")
+short_ivs[[3]] <- c("distance_km*linked",
+                    "Party_5pt", "Education", "Age", "Income")
+# short_ivs[[3]] <- c("distance_km*identity_strength_recoded",
+#                     "Party_5pt", "Education", "Age", "Income")
+short_ivs[[4]] <- c("distance_km*psych_dist_lang", "linked", "Party_5pt",
+                  "Education", "Age", "Income")
+short_ivs[[5]] <- c("psych_dist_lang*linked", "Party_5pt",
+                    "Education", "Age", "Income")
+# short_ivs[[5]] <- c("distance_km*psych_dist_lang", "identity_strength_recoded", 
+#                     "Party_5pt", "Education", "Age", "Income")
+# short_ivs[[6]] <- c("distance_km*psych_dist_lang*identity_strength_recoded",
+#                     "Party_5pt","Education", "Age")
+short_ivs[[6]] <- c("distance_km*psych_dist_lang*linked", "Party_5pt",
+                    "Education", "Age")
+
+
+# short_ivs[[3]] <- c("distance_km*psych_dist_lang", "identity_strength_recoded", 
+#                   "Party_5pt",
+                  # "Education", "Age", "Income")
+# short_ivs[[4]] <- c( "distance_km*identity_strength_recoded", "psych_dist_lang", 
+#                    "Party_5pt", "Education", "Age", "Income")
+# short_ivs[[5]] <- c("distance_km*linked", 
+# #                   "Party_5pt", "Education", "Age", "Income")
+# short_ivs[[6]] <- c( "Party_5pt",
+#                    "Education", "Age", "distance_km", "linked*psych_dist_lang")
+# short_ivs[[7]] <- c( "Party_5pt",
+#                    "Education", "Age", "distance_km", 
+#                    "identity_strength_recoded*psych_dist_lang")
+# short_ivs[[8]] <- c("distance_km*psych_dist_lang*identity_strength_recoded",
+#                   "Party_5pt","Education", "Age")
+# short_ivs[[9]] <- c("distance_km*linked*psych_dist_lang", "Party_5pt",
+#                   "Education", "Age")
+
+
+
+### SIMPLIFIED, PHY DIST ONLY MODELS --------
+
+dist_models <- list()
+dist_models[[1]] <- c("distance_km", "Party_5pt",
+                      "Education", "Age", "Income", "psych_dist_lang")
+dist_models[[2]] <- c("border_state", "Party_5pt",
+                      "Education", "Age", "Income", "psych_dist_lang")
+dist_models[[2]] <- c("distance_km", "linked","Party_5pt", "Education", "Age", 
+                      "Income", "psych_dist_lang")
+dist_models[[3]] <- c("distance_km", "identity_strength_recoded","Party_5pt",
+                      "Education", "Age", "Income", "psych_dist_lang")
+dist_models[[4]] <- c("distance_km", "linked","Party_5pt",
+                      "Education", "Age", "Income", "psych_dist_lang",
+                      "distance_km*linked")
+dist_models[[5]] <- c("distance_km", "linked","Party_5pt",
+                      "Education", "Age", "Income", "psych_dist_lang",
+                      "distance_km*identity_strength_recoded")
+
+
+
+### New Models --------
+dist_models <- list()
+dist_models[[1]] <- c("distance_km", "Republican",
+                      "Education", "Age", "Income", "Immigrant", "linked")
+dist_models[[2]] <- c("Inclusive", "Republican",
+                      "Education", "Age", "Income", "Immigrant", "linked")
+dist_models[[3]] <- c("distance_km", "Inclusive", "Republican", "Education", "Age", 
+                      "Income", "Immigrant", "linked")
+dist_models[[4]] <- c("distance_km*Inclusive", "Republican",
+                      "Education", "Age", "Income", "Immigrant", "linked")
+dist_models[[5]] <- c("distance_km*Inclusive*linked", "Republican",
+                      "Education", "Age", "Income", "Immigrant")
+
+## Survey Design Weight Object & FULL regs  -----
 
 svy_cmps <- svydesign(id = ~ 1, weights = ~race_weight, data = full_cmps_lat)
 
+bin_function(dvs_binomial, short_ivs, cmps500, miles_500, "full_bin")
+ols_function(dvs_ols, short_ivs, cmps500, miles_500, "full_ols")
+stargazer(full_bin, type = "latex",
+          dep.var.labels = "Increase Border Spending, Including A Border Wall",
+          covariate.labels = c("Distance (in km)",
+                               "Psych. Distance",
+                               "Party", 
+                               # "Linked Fate: Psych. Distance",
+                               # "Distance (in km): Linked Fate: Psych. Distance",
+                               "Linked Fate",
+                               # "Identity Strength: Psych. Distance",
+                               # "Identity Strength",
+                               "Education","Age",
+                               "Income",
+                               "Distance (in km): Linked Fate",
+                               "Distance (in km): Psych. Distance",
+                               "Psych. Distance: Linked Fate",
+                               "Distance (in km): Psych. Distance: Linked Fate",
+                               "Constant")
+)
+
+stargazer(full_ols, type = "latex",
+          dep.var.labels = "Border Security as a National Priority",
+          covariate.labels = c("Distance (in km)",
+                               "Psych. Distance",
+                               "Party", 
+                               # "Linked Fate: Psych. Distance",
+                               # "Distance (in km): Linked Fate: Psych. Distance",
+                               "Linked Fate",
+                               # "Identity Strength: Psych. Distance",
+                               # "Identity Strength",
+                               "Education","Age",
+                               "Income",
+                               "Distance (in km): Linked Fate",
+                               "Distance (in km): Psych. Distance",
+                               "Psych. Distance: Linked Fate",
+                               "Distance (in km): Psych. Distance: Linked Fate",
+                               "Constant")
+)
 # running the spline regressions - - ------
 
 spline3 <- svyglm(Increase_Border_Spending ~  splines::bs(distance_km, 
@@ -213,6 +326,7 @@ lat_over_100 <- subset(full_cmps_lat, subset = full_cmps_lat$distance_km > 160.9
 ######## Subsets by State -------------------------
 dem <- subset(full_cmps_lat, subset = full_cmps_lat$State == 32 | full_cmps_lat$California == 1)
 rep <- subset(full_cmps_lat, subset = full_cmps_lat$State == 3 | full_cmps_lat$Texas == 1)
+nonborder <- subset(full_cmps_lat, subset = full_cmps_lat$border_state == 0)
 
 ### survey objects -------
 
@@ -231,7 +345,7 @@ svy_cmps_over100 <- svydesign(id = ~ 1, weights = ~race_weight, data = lat_over_
 
 dem_cmps <- svydesign(id = ~ 1, weights = ~race_weight, data = dem)
 rep_cmps <- svydesign(id = ~ 1, weights = ~race_weight, data = rep)
-
+rep_cmps <- svydesign(id = ~ 1, weights = ~race_weight, data = nonborder)
 ####### subset regressions ---------
 bin_function(dvs_binomial, ivs, ca_cmps_500, ca_500, "ca_runs_500")
 bin_function(dvs_binomial, ivs, tx_cmps_500, tx_500, "tx_runs_500")
@@ -241,11 +355,14 @@ bin_function(dvs_binomial, ivs, nm_cmps_500, nm_500, "nm_runs_500")
 
 ##### STATE REGS -------
 
-bin_function(dvs_binomial, rev_ivs, dem_cmps, dem, "dem_runs")
-bin_function(dvs_binomial, rev_ivs, rep_cmps, rep, "rep_runs")
+bin_function(dvs_binomial, short_ivs, dem_cmps, dem, "dem_runs")
+bin_function(dvs_binomial, short_ivs, rep_cmps, rep, "rep_runs")
 
-ols_function(dvs_ols, rev_ivs, dem_cmps, dem, "dem_runs_sec")
-ols_function(dvs_ols, rev_ivs, rep_cmps, rep, "rep_runs_sec")
+ols_function(dvs_ols, short_ivs, dem_cmps, dem, "dem_runs_sec")
+ols_function(dvs_ols, short_ivs, rep_cmps, rep, "rep_runs_sec")
+
+# ols_function(dvs_ols, dist_models, dem_cmps, dem, "dem_runs_sec")
+# ols_function(dvs_ols, dist_models, rep_cmps, rep, "rep_runs_sec")
 
 ###### OTHER REGS -------
 bin_function(dvs_binomial, rev_ivs, dem_cmps_500, dem_500, "dem_runs")
@@ -334,18 +451,18 @@ stargazer(rep_runs, type = "latex",
           dep.var.labels = "Increase Border Spending, Including A Border Wall",
           covariate.labels = c("Distance (in km)",
                                "Psych. Distance",
-                               "Linked Fate: Psych. Distance",
-                               "Distance (in km): Linked Fate: Psych. Distance",
+                               "Party", 
+                               # "Linked Fate: Psych. Distance",
+                               # "Distance (in km): Linked Fate: Psych. Distance",
                                "Linked Fate",
-                               "Identity Strength: Psych. Distance",
-                               "Identity Strength",
-                               "Party", "Education","Age",
+                               # "Identity Strength: Psych. Distance",
+                               # "Identity Strength",
+                               "Education","Age",
                                "Income",
+                               "Distance (in km): Linked Fate",
                                "Distance (in km): Psych. Distance",
-                               "Distance (in km): Identity Strength",
-                               "Distance (in km):Linked Fate",
-                               "Psych. Distance: Identity Strength",
-                               "Distance (in km): Psych. Distance:Identity Strength",
+                               "Psych. Distance: Linked Fate",
+                               "Distance (in km): Psych. Distance: Linked Fate",
                                "Constant")
           )
 
@@ -353,18 +470,18 @@ stargazer(rep_runs_sec, type = "latex",
           dep.var.labels = "Border Security as a National Priority",
           covariate.labels = c("Distance (in km)",
                                "Psych. Distance",
-                               "Linked Fate: Psych. Distance",
-                               "Distance (in km): Linked Fate: Psych. Distance",
+                               "Party", 
+                               # "Linked Fate: Psych. Distance",
+                               # "Distance (in km): Linked Fate: Psych. Distance",
                                "Linked Fate",
-                               "Identity Strength: Psych. Distance",
-                               "Identity Strength",
-                               "Party", "Education","Age",
+                               # "Identity Strength: Psych. Distance",
+                               # "Identity Strength",
+                               "Education","Age",
                                "Income",
+                               "Distance (in km): Linked Fate",
                                "Distance (in km): Psych. Distance",
-                               "Distance (in km): Identity Strength",
-                               "Distance (in km):Linked Fate",
-                               "Psych. Distance: Identity Strength",
-                               "Distance (in km): Psych. Distance:Identity Strength",
+                               "Psych. Distance: Linked Fate",
+                               "Distance (in km): Psych. Distance: Linked Fate",
                                "Constant")
 )
 
@@ -373,38 +490,38 @@ stargazer(rep_runs_sec, type = "latex",
 stargazer(dem_runs, type = "latex",
           dep.var.labels = "Increase Border Spending, Including A Border Wall",
           covariate.labels = c("Distance (in km)",
-                     "Psych. Distance",
-                     "Linked Fate: Psych. Distance",
-                     "Distance (in km): Linked Fate: Psych. Distance",
-                     "Linked Fate",
-                     "Identity Strength: Psych. Distance",
-                     "Identity Strength",
-                     "Party", "Education","Age",
-                     "Income",
-                     "Distance (in km): Psych. Distance",
-                     "Distance (in km): Identity Strength",
-                     "Distance (in km): Linked Fate",
-                     "Psych. Distance: Identity Strength",
-                     "Distance (in km): Psych. Distance: Identity Strength",
-                     "Constant")
+                               "Psych. Distance",
+                               "Party", 
+                               # "Linked Fate: Psych. Distance",
+                               # "Distance (in km): Linked Fate: Psych. Distance",
+                               "Linked Fate",
+                               # "Identity Strength: Psych. Distance",
+                               # "Identity Strength",
+                               "Education","Age",
+                               "Income",
+                               "Distance (in km): Linked Fate",
+                               "Distance (in km): Psych. Distance",
+                               "Psych. Distance: Linked Fate",
+                               "Distance (in km): Psych. Distance: Linked Fate",
+                               "Constant")
           )
 
 stargazer(dem_runs_sec, type = "latex",
           dep.var.labels = "Border Security as a National Priority",
           covariate.labels = c("Distance (in km)",
                                "Psych. Distance",
-                               "Linked Fate: Psych. Distance",
-                               "Distance (in km): Linked Fate: Psych. Distance",
+                               "Party", 
+                                # "Linked Fate: Psych. Distance",
+                               # "Distance (in km): Linked Fate: Psych. Distance",
                                "Linked Fate",
-                               "Identity Strength: Psych. Distance",
-                               "Identity Strength",
-                               "Party", "Education","Age",
+                               # "Identity Strength: Psych. Distance",
+                               # "Identity Strength",
+                               "Education","Age",
                                "Income",
-                               "Distance (in km): Psych. Distance",
-                               "Distance (in km): Identity Strength",
                                "Distance (in km): Linked Fate",
-                               "Psych. Distance: Identity Strength",
-                               "Distance (in km): Psych. Distance: Identity Strength",
+                               "Distance (in km): Psych. Distance",
+                               "Psych. Distance: Linked Fate",
+                               "Distance (in km): Psych. Distance: Linked Fate",
                                "Constant")
 )
 

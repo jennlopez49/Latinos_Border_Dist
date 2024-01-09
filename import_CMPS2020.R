@@ -5,7 +5,7 @@ cmps2020 <- read_dta("CMPS 2020 full adult sample weighted STATA.dta",
 ### Subsetting to specific vars ########
 cmps_sub <- cmps2020 %>% select(uuid, S2_Racer2, S2_Race_Prime, S2_Hispanicr2,
                                 S2_Hispanicr3, S2_Hispanicr4, S3b,
-                                S4, S5_Age, S10, S10_Mex, S13, S15,
+                                S4, S5_Age, S7, S10, S10_Mex, S13, S15,
                                 Q21, Q22, Q22, Q29, Q145, Q146, Q147, Q183,
                                 Q184r1, Q184r2, Q184r3, Q352, Q467_Q469r1, 
                                 Q467_Q469r2, Q467_Q469r3, 
@@ -63,6 +63,7 @@ cmps_clean <- cmps_sub %>% mutate(Hispanic = ifelse(cmps_sub$S2_Racer2 == 1, 1,
                                   Mexican = ifelse(cmps_sub$S10 == 12 | 
                                                      cmps_sub$S10_Mex == 1, 1, 
                                                    0),
+                                  Immigrant = ifelse(cmps_sub$S7 == 2, 1, 0),
                                   Education = S13,                              # 1 - Grade school, 7 - post-grad
                                   Zip = S15,
                                   Party = case_when(Q21 == 1 ~ 1,               # Rep
@@ -74,6 +75,7 @@ cmps_clean <- cmps_sub %>% mutate(Hispanic = ifelse(cmps_sub$S2_Racer2 == 1, 1,
                                                             ifelse(Q21 == 2 & Q22 == 1, 3,
                                                                    ifelse(Q21 == 2 & Q22 == 2, 4,
                                                                           0)))),
+                                  Republican = ifelse(cmps_sub$Q21 == 1, 1, 0), 
                                   Interest_Pol = Q29,                           # 1 - Very, 4 - Not at all
                                   Econ_Hope = Q145,                             # 1 - more hope, 7 - much less
                                   Econ_Angry = Q146,                            # 1 - more angry, 7 - much less
@@ -145,7 +147,7 @@ cmps_clean <- cmps_sub %>% mutate(Hispanic = ifelse(cmps_sub$S2_Racer2 == 1, 1,
                                                         ifelse(Q809 == 2, 4,
                                                                ifelse(Q809 == 4, 2,
                                                                       ifelse(Q809 == 3, 3, NA)))),    # Recoded - 1 - Both in the US, 2 - 1 in US/1 Outside, 3 - PR, 4 - Both outside US
-                                  Grandparents_Born = Q812,                     # 1 - Both in US, 5 - All 4 outside of US 
+                                  Grandparents_Born = Q812,                     # 1 - All in US, 5 - All 4 outside of US 
                                   Income = Q813,                                # 1 - > 20k, 12 - < 200k, 99 - IDK
                                   Employed = Q814,                              # 1 - full time, 5 - unemployed, 6 - homemaker
                                   Spanish = Q816,                               # 1 - Very often, 5 - almost never
@@ -304,7 +306,17 @@ full_cmps <- full_cmps %>% mutate(
                        Full_Citizen == 6 ~ 1,
                        Full_Citizen == 7 ~ 1),
   citizenship_exp = Belong_US + Accepted_US + Value_US,
-  citizenship_ext = citizenship_exp + Full_Cit
+  citizenship_ext = citizenship_exp + Full_Cit, 
+  Type_Border = case_when(State == 3 ~ 1, 
+                          Texas == 1 ~ 1,
+                          State == 32 ~ 2,                                      
+                          California == 1 ~ 2, 
+                          border_state == 0 ~ 3                                 #Least Inclusive -- 1, More Inclusive --  2, Non-border -- 3
+                          ),
+  Inclusive = case_when(State == 3 ~ 0,                                         #Least Inclusive -- 0, More Inclusive --  1, Non-border -- 
+                        Texas == 1 ~ 0,
+                        State == 32 ~ 1,                                      
+                        California == 1 ~ 1)
 )
 
 ## Subsetting to just Latinos & also getting rid of MN 
@@ -312,8 +324,9 @@ full_cmps <- full_cmps %>% mutate(
 full_cmps_lat <- subset(full_cmps, subset = Hispanic == 1)
 full_cmps_lat <- full_cmps_lat %>% filter(!(State == 24))
 full_cmps_lat$linked <- as.numeric(full_cmps_lat$Linked_Fate)
-
-
+full_cmps_lat$Type_Border <- factor(full_cmps_lat$Type_Border, levels = c(1,2,3),
+                                    labels = c("INCL", "EXCL", "Non-Border"))
+full_cmps_lat$Type_Border <- relevel(full_cmps_lat$Type_Border, ref = "Non-Border")
 
 ## Subset down to main IVs 
 
@@ -322,8 +335,8 @@ cmps_lat <- full_cmps_lat %>% select(distance_km, psych_dist_lang, Party_5pt,
                                      linked, linked_simp, identity_strength_recoded,
                                      id_simp, Increase_Border_Spending,
                                      border_sec_first, Q812, Q809)
-sum(is.na(full_cmps_lat$psych_dist))
-
-
-#### GRANDPARENT NAs 
-na_match <- is.na(full_cmps_lat) == is.na(df$question2)
+# sum(is.na(full_cmps_lat$psych_dist))
+# 
+# 
+# #### GRANDPARENT NAs 
+# na_match <- is.na(full_cmps_lat) == is.na(df$question2)
