@@ -10,6 +10,12 @@ library(splines)
 library(patchwork)
 library(car)
 library(margins)
+library(xtable)
+library(sandwich)
+library(psych) # To run EFA
+library(REdaS) # KMO & Bartletts test
+library(GPArotation)
+library(lmtest)
 
 ######### Dependent Variables ######## 
 

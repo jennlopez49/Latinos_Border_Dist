@@ -3,7 +3,8 @@
 labels <- c("Oppose", "Support")
 
 hist_borderspend <- full_cmps_lat %>% ggplot(aes(Increase_Border_Spending)) + geom_histogram(bins = 3) + 
-  xlab("Increase Border Spending") + ylab("Count") + scale_x_continuous(labels = c("","Oppose", "", "Support", ""))
+  xlab("Increase Border Spending") + ylab("Count") + 
+  scale_x_continuous(labels = c("","Oppose", "", "Support", ""))
 
 
 hist_border <- full_cmps_lat %>% ggplot(aes(border_sec_first)) + geom_histogram() + 
@@ -34,13 +35,13 @@ max(full_cmps_lat$distance_km, na.rm = TRUE)
 
 labels <- c("Oppose", "Support")
 
-d_borderwall <- dem %>% ggplot(aes(Increase_Border_Spending,)) +
-  geom_histogram(bins = 3,fill = "blue") + 
+d_borderwall <- incl %>% ggplot(aes(Increase_Border_Spending,)) +
+  geom_histogram(bins = 3,fill = "dodgerblue") + 
   xlab("Most Inclusive") + ylab("Count") + 
   scale_x_continuous(labels = c("","Oppose", "", "Support", ""))
 
 r_borderwall <- rep %>% ggplot(aes(Increase_Border_Spending)) +
-  geom_histogram(bins = 3, fill = "red") + xlab("Least Inclusive") + ylab(NULL) + 
+  geom_histogram(bins = 3, fill = "dodgerblue4") + xlab("Least Inclusive") + ylab(NULL) + 
   scale_x_continuous(labels = c("","Oppose", "", "Support", ""))
 # together 
 

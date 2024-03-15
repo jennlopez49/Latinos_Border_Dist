@@ -327,7 +327,32 @@ full_cmps_lat$linked <- as.numeric(full_cmps_lat$Linked_Fate)
 full_cmps_lat$Type_Border <- factor(full_cmps_lat$Type_Border, levels = c(1,2,3),
                                     labels = c("INCL", "EXCL", "Non-Border"))
 full_cmps_lat$Type_Border <- relevel(full_cmps_lat$Type_Border, ref = "Non-Border")
+full_cmps_lat$Psychological_Distance <- ifelse(full_cmps_lat$psych_dist_lang > 11.5, 0, 1)
+full_cmps_lat$age_sqd <- full_cmps_lat$Age^2
+full_cmps_lat$Parents_Born_NO_NA <- ifelse(is.na(full_cmps_lat$Parents_Born_Recoded) == TRUE, 
+                                           99, full_cmps_lat$Parents_Born_Recoded)
+full_cmps_lat$Grandparents_Born_NO_NA <- ifelse(is.na(full_cmps_lat$Grandparents_Born_Recoded) == TRUE, 
+                                           99, full_cmps_lat$Grandparents_Born_Recoded)
+full_cmps_lat$missing_birth <- ifelse(full_cmps_lat$Parents_Born_NO_NA == 99 | full_cmps_lat$Grandparents_Born_NO_NA == 99, 1, 0)
+full_cmps_lat$family_birth <- (full_cmps_lat$Parents_Born_NO_NA + 
+  full_cmps_lat$Grandparents_Born_NO_NA + full_cmps_lat$Imm_Comm + full_cmps_lat$Spanish)
 
+full_cmps_lat$log_dist <- log(full_cmps_lat$distance_km)
+full_cmps_lat$imm_enf_exp <- ifelse(full_cmps_lat$Q490r1 == 1 | 
+                                      full_cmps_lat$Q490r2 == 1 |
+                                      full_cmps_lat$Q490r3 == 1 |
+                                      full_cmps_lat$Q490r4 == 1 |
+                                      full_cmps_lat$Q490r5 == 1 |
+                                      full_cmps_lat$Q490r6 == 1 |
+                                      full_cmps_lat$Q490r7 == 1, 1, 0
+                                      )
+# alt psych dist lang without gparents 
+full_cmps_lat$alt_acc <- (full_cmps_lat$Parents_Born_Recoded + 
+  full_cmps_lat$Imm_Comm + full_cmps_lat$Spanish)
+full_cmps_lat$alt_acc <- (full_cmps_lat$Parents_Born_Recoded + 
+                            full_cmps_lat$Imm_Comm + full_cmps_lat$Spanish)
+full_cmps_lat$acc_lang <- (full_cmps_lat$Imm_Comm + full_cmps_lat$Spanish)
+full_cmps_lat$Remittances <- ifelse(full_cmps_lat$Remit == 1, 0, 1)
 ## Subset down to main IVs 
 
 cmps_lat <- full_cmps_lat %>% select(distance_km, psych_dist_lang, Party_5pt,
@@ -335,6 +360,15 @@ cmps_lat <- full_cmps_lat %>% select(distance_km, psych_dist_lang, Party_5pt,
                                      linked, linked_simp, identity_strength_recoded,
                                      id_simp, Increase_Border_Spending,
                                      border_sec_first, Q812, Q809)
+### matching inclusivity 
+state_abb <- full_cmps_lat$State_abb
+# write.csv(unique(state_abb), "state_abb.csv")
+inclusivity <- readxl::read_xlsx("inclusive.xlsx")
+colnames(inclusivity) <- c("State_abb","inclusivity")
+full_cmps_latino <- left_join(full_cmps_lat, inclusivity, by = "State_abb")
+full_cmps_latino$inclusivity <- as.numeric(full_cmps_latino$inclusivity)
+  
+  
 # sum(is.na(full_cmps_lat$psych_dist))
 # 
 # 
