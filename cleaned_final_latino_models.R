@@ -2,7 +2,7 @@
 
 mismatches <- data.frame(zips = c(96704,13456, 10001, 15001, 98104, 33101,
                                   33122, 28304, 56230, 40214, 33327, 84047), num = c(1:12))
-cleaned_full <- cleaned_full %>% filter(! zips %in% mismatches$zips)
+cleaned_full <- full_cmps_lat %>% filter(! zips %in% mismatches$zips)
 cleaned <- cleaned_full[!cleaned_full$State == 1 | cleaned_full$State == 12,]
 
 
@@ -36,13 +36,17 @@ short_ivs[[3]] <- c("distance_km*psych_dist_lang", "linked", "Party_5pt",
 
 no_nas_ivs <- list()
 
-no_nas_ivs[[1]] <- c("distance_km","Party_5pt", "linked",
+no_nas_ivs[[1]] <- c("log_dist","Party_5pt", "linked",
                     "Education", "age_sqd", "Income")
 no_nas_ivs[[2]] <- c("family_birth", "missing_birth", "Party_5pt", "linked",
                     "Education", "age_sqd", "Income")
-no_nas_ivs[[3]] <- c("distance_km*family_birth", "missing_birth", "linked", "Party_5pt",
+no_nas_ivs[[3]] <- c("log_dist","family_birth", "missing_birth", "Party_5pt", "linked",
+                     "Education", "age_sqd", "Income")
+no_nas_ivs[[4]] <- c("log_dist*family_birth", "missing_birth", "linked", "Party_5pt",
                     "Education", "age_sqd", "Income")
-no_nas_ivs[[4]] <- c("distance_km*family_birth*Inclusive", "missing_birth", "linked", "Party_5pt",
+no_nas_ivs[[5]] <- c("log_dist","family_birth", "missing_birth", "Party_5pt", "linked",
+                     "Education", "age_sqd", "Income", "Inclusive")
+no_nas_ivs[[6]] <- c("log_dist*family_birth*Inclusive", "missing_birth", "linked", "Party_5pt",
                      "Education", "age_sqd", "Income")
 # ### Setting up exclusive vs inclusive ------ 
 # incl <- subset(cleaned, subset = cleaned$State == 32 | cleaned$California == 1)
@@ -67,9 +71,9 @@ bin_function(dvs_binomial, short_ivs, excl, excl, "excl_runs")
 ols_function(dvs_ols, short_ivs, incl, incl, "incl_runs_sec")
 ols_function(dvs_ols, short_ivs, excl, excl, "excl_runs_sec")
 
-### no nas 
-bin_function(dvs_binomial, no_nas_ivs, incl, incl, "incl_runs_nas")
-bin_function(dvs_binomial, no_nas_ivs, excl, excl, "excl_runs_nas")
+### no nas--- all models except the full sample 3-way interaction
+bin_function(dvs_binomial, no_nas_ivs[1:4], incl, incl, "incl_runs_nas")
+bin_function(dvs_binomial, no_nas_ivs[1:4], excl, excl, "excl_runs_nas")
 
 ols_function(dvs_ols, no_nas_ivs, incl, incl, "incl_runs_sec_nas")
 ols_function(dvs_ols, no_nas_ivs, excl, excl, "excl_runs_sec_nas")
@@ -100,20 +104,20 @@ stargazer(mod1, mod2, type = "latex",
           column.separate = c(1,1))
 ### Producing the tables -------------
 
-stargazer(full_sample_bin, type = "latex", 
+stargazer(full_sample_bin$Increase_Border_Spending[c(1,2,4,6)], type = "latex", 
           dep.var.labels = "Increase Border Spending, Including A Border Wall",
-          covariate.labels = c("Distance (in km)",
+          covariate.labels = c("Distance Logged",
                                "Acculturation", "Inclusive", "Missing Acculturation",
                                "Party",
                                "Linked Fate",
                                "Education","Age",
-                               "Income", "Distance (in km): Acculturation",
-                               "Distance (in km): Inclusive",
+                               "Income", "Distance (Logged): Acculturation",
+                               "Distance (Logged): Inclusive",
                                "Acculturation: Inclusive",
-                               "Distance (in km): Acculturation: Inclusive",
+                               "Distance (Logged): Acculturation: Inclusive",
                                "Constant"))
 
-stargazer(full_sample_ols, type = "latex", 
+stargazer(full_sample_ols$border_security_recoded[c(1,2,4,6)], type = "latex", 
           dep.var.labels = "Increase Border Spending, Including A Border Wall",
           covariate.labels = c("Distance (in km)",
                                "Acculturation", "Inclusive", "Missing Acculturation",

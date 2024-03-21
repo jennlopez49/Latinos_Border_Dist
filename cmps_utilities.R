@@ -16,7 +16,9 @@ library(psych) # To run EFA
 library(REdaS) # KMO & Bartletts test
 library(GPArotation)
 library(lmtest)
-
+library(devtools)
+library(pwr)
+library(WebPower)
 ######### Dependent Variables ######## 
 
 dvs_ols <- c("border_security_recoded")
