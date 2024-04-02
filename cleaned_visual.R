@@ -369,3 +369,283 @@ pwr.f2.test(u = 13, v = 1983, f2 = f2_3, sig.level = 0.05)
 power_interaction(n.iter = 100, N = 953, r.x1.y = -0.09184342, 
                   r.x2.y = -0.06706666, r.x1x2.y = -0.1185832, 
                   r.x1.x2 = 0.11963341, rel.x1 = 1, rel.x2 = 1, rel.y = 1)
+
+#### Coefficent Plots for Slides-------
+## split to allow for better visualization
+# coef_names_control <- c(Income = "Income", age_sqd = "Age", Education = "Education", 
+#                 Party_5pt = "Party", linked = "Linked Fate",
+#                 missing_birth = "Missing Acculturation", 
+#                 family_birth = "Acculturation", distance_km =
+#                 "Distance (in km)")
+# full_controls <- coefplot(full_sample_bin$Increase_Border_Spending[[4]], intercept = FALSE, 
+#          coefficients = c("age_sqd", "Income", "Education", "Party_5pt", 
+#                           "linked", "missing_birth", "family_birth", 
+#                           "distance_km"),
+#          newNames = coef_names_control)
+# ggsave("full_controls.pdf", width = 7, height = 4)
+
+### distance H1a & H1b 
+# coef_names_dist <- c(distance_km = "Distance (Rescaled)")
+# full_dist_spend <- coefplot(full_sample_bin_re$Increase_Border_Spending[[1]], intercept = FALSE,
+#                       coefficients = "distance_km", lwdInner = .5, lwdOuter = .1,
+#          title = "Increase Border Spending", newNames = coef_names_dist) 
+# full_dist_sec <- coefplot(full_sample_ols_re$border_security_recoded[[1]], intercept = FALSE,
+#          coefficients = "distance_km", lwdInner = .5, lwdOuter = .1,
+#          title = "Make Border Security a National Priority", newNames = coef_names_dist) 
+# 
+# full_dist_spend <- full_dist_spend + scale_x_continuous(limits = c(-.8, .5))
+# full_dist_sec <- full_dist_sec + scale_x_continuous(limits = c(-.8, .5))
+# 
+# combined_full_dist <- full_dist_spend + full_dist_sec
+# ggsave("combined_full_dist.pdf", width = 8, height = 4)
+
+#interactions plotted 
+
+mod.labs <- c("Increase Border Spending", "Border Security a National Priority")
+
+# Create a named vector to map old labels to new labels
+label_mapping <- setNames(mod.labs, levels(full_sample_bin_re$Increase_Border_Spending[[4]]$Model))
+
+coef_names_full_int <- c("distance_km:family_birth" = "Distance (in km) x Acculturation",
+                         "distance_km:Inclusive" = "Distance (in km) x Inclusive",
+                         "family_birth:Inclusive" = "Acculturation x Inclusive",
+                         "distance_km:family_birth:Inclusive" = "Distance (in km) x Acculturation x Inclusive")
+
+
+combined <- multiplot(full_sample_bin_re$Increase_Border_Spending[[4]], 
+          full_sample_ols_re$border_security_recoded[[4]],
+          intercept = FALSE, 
+          coefficients = c("distance_km:family_birth", 
+                           "family_birth:Inclusive",
+                           "distance_km:family_birth:Inclusive"),
+          lwdInner = .5, lwdOuter = .2,
+          newNames = coef_names_full_int, single = FALSE, legend.position = "none")
+
+combined_int <- combined + facet_wrap(~Model, labeller = as_labeller(setNames(mod.labs, sort(unique(combined$data$Model)))))
+          
+
+ggsave("combined_int.pdf", width = 9, height = 4)
+
+# Missing Interaction 
+
+coef_names_miss_int <- c("distance_km:Inclusive" = "Distance (in km) x Inclusive")
+
+
+combined_miss <- multiplot(full_sample_bin_re$Increase_Border_Spending[[4]], 
+                      full_sample_ols_re$border_security_recoded[[4]],
+                      intercept = FALSE, 
+                      coefficients = c("distance_km:Inclusive"),
+                      lwdInner = .5, lwdOuter = .2,
+                      newNames = coef_names_full_int, single = FALSE, legend.position = "none")
+
+combined_miss_int <- combined_miss + facet_wrap(~Model, labeller = as_labeller(setNames(mod.labs, sort(unique(combined$data$Model)))))
+ggsave("combined_miss_int.pdf", width = 9, height = 4)
+
+
+### Inclusive versus Exclusive 
+coef_names_int <- c("distance_km:family_birth" = "Distance (in km) x Acculturation")
+
+# incl_controls <- coefplot(incl_runs_re$Increase_Border_Spending[[3]], intercept = FALSE, 
+#                           coefficients = c("age_sqd", "Income", "Education", "Party_5pt", 
+#                                            "linked", "missing_birth", "family_birth", 
+#                                            "distance_km"),
+#                           newNames = coef_names_control, "Most Inclusive")
+# 
+# excl_controls <- coefplot(excl_runs_re$Increase_Border_Spending[[3]], intercept = FALSE, 
+#                           coefficients = c("age_sqd", "Income", "Education", "Party_5pt", 
+#                                            "linked", "missing_birth", "family_birth", 
+#                                            "distance_km"),
+#                           newNames = coef_names_control, title = "Least Inclusive")
+# 
+# combined_coefs <- incl_controls + excl_controls
+# ggsave("combined_coefs.pdf", width = 8, height = 4)
+# 
+# excl_int <- coefplot(excl_runs_re$Increase_Border_Spending[[3]], intercept = FALSE, 
+#                          coefficients = c("distance_km:family_birth"),
+#                      lwdInner = .5, lwdOuter = .1,
+#                          newNames = coef_names_int, "Least Inclusive") + 
+#   scale_x_continuous(limits = c(-.035, 0.01))
+# 
+# incl_int <- coefplot(incl_runs_re$Increase_Border_Spending[[3]], intercept = FALSE, 
+#                      coefficients = c("distance_km:family_birth"),
+#                      lwdInner = .5, lwdOuter = .1,
+#                      newNames = coef_names_int, title = "Most Inclusive") + 
+#   scale_x_continuous(limits = c(-.035, 0.01))
+# 
+# combined_int <- incl_int + excl_int
+# ggsave("combined_int_bin.pdf", width = 8, height = 4)
+
+mod_context <- c("Least Inclusive", "Most Inclusive")
+context_int <- multiplot(incl_runs_re$Increase_Border_Spending[[3]], 
+                           excl_runs_re$Increase_Border_Spending[[3]],
+                           intercept = FALSE, 
+                           coefficients = c("distance_km:family_birth"),
+                           lwdInner = .5, lwdOuter = .2,
+                           newNames = coef_names_int, single = FALSE, 
+                         legend.position = "none")
+
+mulcontext_com_int <- context_int + facet_wrap(~Model, 
+                                                labeller = as_labeller(setNames(mod_context, 
+                                                                                sort(unique(context_int$data$Model)))))
+ggsave("context_com_int.pdf", width = 9, height = 4)
+# ### border security 
+# 
+# incl_controls_sec <- coefplot(excl_runs_sec$border_security_recoded[[3]], intercept = FALSE, 
+#                           coefficients = c("age_sqd", "Income", "Education", "Party_5pt", 
+#                                            "linked", "missing_birth", "family_birth", 
+#                                            "distance_km"),
+#                           newNames = coef_names_control, "Most Inclusive")
+# 
+# excl_controls_sec <- coefplot(excl_runs_sec$border_security_recoded[[3]], intercept = FALSE, 
+#                           coefficients = c("age_sqd", "Income", "Education", "Party_5pt", 
+#                                            "linked", "missing_birth", "family_birth", 
+#                                            "distance_km"),
+#                           newNames = coef_names_control, title = "Least Inclusive")
+# 
+# combined_coefs_sec <- incl_controls_sec + excl_controls_sec
+# ggsave("combined_coefs_sec.pdf", width = 7, height = 4)
+context_int_sec <- multiplot(incl_runs_sec_re$border_security_recoded[[3]], 
+                         excl_runs_sec_re$border_security_recoded[[3]],
+                         intercept = FALSE, 
+                         coefficients = c("distance_km:family_birth"),
+                         lwdInner = .5, lwdOuter = .2,
+                         newNames = coef_names_full_int, single = FALSE, legend.position = "none")
+
+context_com_int_sec <- context_int_sec + facet_wrap(~Model, 
+                                               labeller = as_labeller(setNames(mod_context, 
+                                                                               sort(unique(context_int_sec$data$Model)))))
+ggsave("context_com_int_sec.pdf", width = 9, height = 4)
+
+
+# excl_int_sec <- coefplot(excl_runs_sec_re$border_security_recoded[[3]], intercept = FALSE, 
+#                      coefficients = c("distance_km:family_birth"),
+#                      lwdInner = .5, lwdOuter = .1,
+#                      newNames = coef_names_int, "Least Inclusive") + 
+#   scale_x_continuous(limits = c(-.02, .02))
+# 
+# incl_int_sec <- coefplot(incl_runs_sec_re$border_security_recoded[[3]], intercept = FALSE, 
+#                      coefficients = c("distance_km:family_birth"),
+#                      lwdInner = .5, lwdOuter = .1,
+#                      newNames = coef_names_int, title = "Most Inclusive") + 
+#   scale_x_continuous(limits = c(-.02, .02))
+# 
+# combined_int_sec <-  incl_int_sec + excl_int_sec 
+# ggsave("combined_int_sec.pdf", width = 8, height = 4)
+
+#### DISTANCE alone 
+
+context_dist <- multiplot(incl_runs_re$Increase_Border_Spending[[1]], 
+                         excl_runs_re$Increase_Border_Spending[[1]],
+                         intercept = FALSE, 
+                         coefficients = c("distance_km"),
+                         lwdInner = .5, lwdOuter = .2,
+                         newNames = coef_names_dist, single = FALSE, legend.position = "none")
+
+context_com_dist <- context_dist + facet_wrap(~Model, 
+                                               labeller = as_labeller(setNames(mod_context, 
+                                                                               sort(unique(context_dist$data$Model)))))
+ggsave("context_com_dist.pdf", width = 9, height = 4)
+# ## spending 
+# excl_dist_spend <- coefplot(excl_runs_re$Increase_Border_Spending[[1]], intercept = FALSE, 
+#                           coefficients = c("distance_km"),
+#                           lwdInner = .5, lwdOuter = .1,
+#                           newNames = coef_names_dist, "Least Inclusive") +
+#   scale_x_continuous(limits = c(-2.5, 2))
+# 
+# incl_dist_spend <- coefplot(incl_runs_re$Increase_Border_Spending[[1]], intercept = FALSE, 
+#                           coefficients = c("distance_km"),
+#                           lwdInner = .5, lwdOuter = .1,
+#                           newNames = coef_names_dist, title = "Most Inclusive") +
+#   scale_x_continuous(limits = c(-2.5, 2))
+# 
+# combined_dist_spend <-  incl_dist_spend + excl_dist_spend 
+# ggsave("combined_dist_spend.pdf", width = 7, height = 4)
+## security 
+
+context_dist_sec <- multiplot(incl_runs_sec_re$border_security_recoded[[1]],
+                          excl_runs_sec_re$border_security_recoded[[1]],
+                          intercept = FALSE, 
+                          coefficients = c("distance_km"),
+                          lwdInner = .5, lwdOuter = .2,
+                          newNames = coef_names_dist, single = FALSE, legend.position = "none")
+
+context_com_dist_sec <- context_dist_sec + facet_wrap(~Model, 
+                                              labeller = as_labeller(setNames(mod_context, 
+                                                                              sort(unique(context_dist_sec$data$Model)))))
+ggsave("context_com_dist_sec.pdf", width = 9, height = 4)
+# excl_dist_sec <- coefplot(excl_runs_sec_re$border_security_recoded[[1]], intercept = FALSE, 
+#                          coefficients = c("distance_km"),
+#                          lwdInner = .5, lwdOuter = .3,
+#                          newNames = coef_names_dist, title = "Least Inclusive") + 
+#    scale_x_continuous(limits = c(-1.5, .5))
+# 
+# incl_dist_sec <- coefplot(incl_runs_sec_re$border_security_recoded[[1]], intercept = FALSE, 
+#                          coefficients = c("distance_km"),
+#                          lwdInner = .5, lwdOuter = .1,
+#                          newNames = coef_names_dist, title = "Most Inclusive")+
+#   scale_x_continuous(limits = c(-1.5, .5))
+# 
+# combined_dist_sec <-  incl_dist_sec + excl_dist_sec 
+# ggsave("combined_dist_sec.pdf", width = 8, height = 4)
+
+
+### ACCULTURATION ALONE
+coef_acc <- c("family_birth" = "Acculturation")
+
+
+context_acc <- multiplot(incl_runs_re$Increase_Border_Spending[[2]],
+                              excl_runs_re$Increase_Border_Spending[[2]],
+                              intercept = FALSE, 
+                              coefficients = c("family_birth"),
+                              lwdInner = .5, lwdOuter = .2,
+                              newNames = coef_acc, single = FALSE, legend.position = "none")
+
+context_com_acc <- context_acc + facet_wrap(~Model, 
+                                                      labeller = as_labeller(setNames(mod_context, 
+                                                                                      sort(unique(context_acc$data$Model)))))
+ggsave("context_com_acc.pdf", width = 9, height = 4)
+# 
+# excl_acc_spend <- coefplot(excl_runs_re$Increase_Border_Spending[[2]], intercept = FALSE, 
+#                             coefficients = c("family_birth"),
+#                             lwdInner = .5, lwdOuter = .1,
+#                             newNames = coef_acc, "Least Inclusive") +
+#   scale_x_continuous(limits = c(-.01, .01))
+# 
+# incl_acc_spend <- coefplot(incl_runs_re$Increase_Border_Spending[[2]], intercept = FALSE, 
+#                             coefficients = c("family_birth"),
+#                             lwdInner = .5, lwdOuter = .1,
+#                             newNames = coef_acc, title = "Most Inclusive") +
+#   scale_x_continuous(limits = c(-.01, .01))
+# 
+# combined_acc_spend <-  incl_acc_spend + excl_acc_spend 
+# ggsave("combined_acc_spend.pdf", width = 8, height = 4)
+## security 
+
+context_acc_sec <- multiplot(incl_runs_sec_re$border_security_recoded[[2]],
+                         excl_runs_sec_re$border_security_recoded[[2]],
+                         intercept = FALSE, 
+                         coefficients = c("family_birth"),
+                         lwdInner = .5, lwdOuter = .2,
+                         newNames = coef_acc, single = FALSE, legend.position = "none")
+
+context_com_acc_sec <- context_acc_sec + facet_wrap(~Model, 
+                                            labeller = as_labeller(setNames(mod_context, 
+                                                                            sort(unique(context_acc_sec$data$Model)))))
+ggsave("context_com_acc_sec.pdf", width = 9, height = 4)
+# 
+# excl_acc_sec <- coefplot(excl_runs_sec_re$border_security_recoded[[2]], intercept = FALSE, 
+#                           coefficients = c("family_birth"),
+#                           lwdInner = .5, lwdOuter = .1,
+#                           newNames = coef_acc, "Least Inclusive") + 
+#   scale_x_continuous(limits = c(-.01, .01))
+# 
+# incl_acc_sec <- coefplot(incl_runs_sec_re$border_security_recoded[[2]], intercept = FALSE, 
+#                           coefficients = c("family_birth"),
+#                           lwdInner = .5, lwdOuter = .1,
+#                           newNames = coef_acc, title = "Most Inclusive") +
+#   scale_x_continuous(limits = c(-.01, .01))
+# 
+# combined_acc_sec <-  incl_acc_sec + excl_acc_sec 
+# ggsave("combined_acc_sec.pdf", width = 8, height = 4)
+# 
+

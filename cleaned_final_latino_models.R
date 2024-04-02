@@ -18,6 +18,10 @@ cleaned_states <- cleaned_states %>% mutate(
   Remittances_Scale = (Remit_Children + Remit_Friends + Remit_Grandparents +
                          Remit_OtherFam + Remit_Parents)
 )
+cleaned_states$border_security_recoded
+### Rescaling ------
+scaled_cleaned <- cleaned_states %>% mutate(distance_km = rescale(distance_km, to = c(0,1)))
+
 ### List of models --------
 short_ivs <- list()
 
@@ -25,14 +29,19 @@ short_ivs[[1]] <- c("distance_km","Party_5pt", "linked",
                     "Education", "age_sqd", "Income")
 # short_ivs[[2]] <- c("dist_sqd","Party_5pt", "linked",
 #                     "Education", "Age", "Income")
-short_ivs[[2]] <- c("psych_dist_lang", "Party_5pt", "linked",
+short_ivs[[2]] <- c("family_birth", "missing_birth",  "Party_5pt", "linked",
                     "Education", "age_sqd", "Income")
 # short_ivs[[3]] <- c("Psych_Distance","Party_5pt", "linked",
 #                     "Education", "Age", "Income")
-short_ivs[[3]] <- c("distance_km*psych_dist_lang", "linked", "Party_5pt",
+short_ivs[[3]] <- c("distance_km*family_birth", "missing_birth",  "linked", 
+                    "Party_5pt",
                     "Education", "age_sqd", "Income")
 # short_ivs[[5]] <- c("distance_km*Psych_Distance", "linked", "Party_5pt",
 #                     "Education", "Age", "Income")
+
+short_ivs[[4]] <- c("distance_km*family_birth*Inclusive", "missing_birth",  "linked", 
+                    "Party_5pt",
+                    "Education", "age_sqd", "Income")
 
 no_nas_ivs <- list()
 
@@ -62,14 +71,14 @@ excl <- subset(new_cmps, subset = new_cmps$variables$State == 3 | new_cmps$varia
 ### Running the models ---------------
 
 ### running on full sample to focus on null results - 
-bin_function(dvs_binomial, no_nas_ivs, new_cmps,new_cmps, "full_sample_bin")
-ols_function(dvs_ols, no_nas_ivs, new_cmps, new_cmps,"full_sample_ols")
+bin_function(dvs_binomial, short_ivs, new_cmps,new_cmps, "full_sample_bin")
+ols_function(dvs_ols, short_ivs, new_cmps, new_cmps,"full_sample_ols")
 
-bin_function(dvs_binomial, short_ivs, incl, incl, "incl_runs")
-bin_function(dvs_binomial, short_ivs, excl, excl, "excl_runs")
+bin_function(dvs_binomial, short_ivs[1:3], incl, incl, "incl_runs")
+bin_function(dvs_binomial, short_ivs[1:3], excl, excl, "excl_runs")
 
-ols_function(dvs_ols, short_ivs, incl, incl, "incl_runs_sec")
-ols_function(dvs_ols, short_ivs, excl, excl, "excl_runs_sec")
+ols_function(dvs_ols, short_ivs[1:3], incl, incl, "incl_runs_sec")
+ols_function(dvs_ols, short_ivs[1:3], excl, excl, "excl_runs_sec")
 
 ### no nas--- all models except the full sample 3-way interaction
 bin_function(dvs_binomial, no_nas_ivs[1:4], incl, incl, "incl_runs_nas")
@@ -267,3 +276,36 @@ stargazer(incl_runs_sec_alt, excl_runs_sec_alt, type = "latex",
                                "Constant"),column.labels = c("Most Inclusive",
                                                              "Least Inclusive"),
           column.separate = c(5,5))
+
+##### Scaled Runs for Presentation ----
+new_cmps_scaled <- svydesign(id = ~ 1, weights = ~race_weight, data = scaled_cleaned)
+
+
+incl_scaled <- subset(new_cmps_scaled, 
+                      subset = new_cmps_scaled$variables$State == 32 | new_cmps_scaled$variables$California == 1)
+excl_scaled <- subset(new_cmps_scaled, subset = new_cmps_scaled$variables$State == 3 | new_cmps_scaled$variables$Texas == 1)
+
+bin_function(dvs_binomial, short_ivs, new_cmps_scaled,new_cmps_scaled, "full_sample_bin_re")
+ols_function(dvs_ols, short_ivs, new_cmps_scaled, new_cmps_scaled,"full_sample_ols_re")
+
+bin_function(dvs_binomial, short_ivs[1:3], incl_scaled, incl_scaled, "incl_runs_re")
+bin_function(dvs_binomial, short_ivs[1:3], excl_scaled, excl_scaled, "excl_runs_re")
+
+ols_function(dvs_ols, short_ivs[1:3], incl_scaled, incl_scaled, "incl_runs_sec_re")
+ols_function(dvs_ols, short_ivs[1:3], excl_scaled, excl_scaled, "excl_runs_sec_re")
+##### LPM Results Border Spending -----
+ols_function(dvs_binomial, short_ivs[1:3], incl, incl, "incl_runs_ols")
+ols_function(dvs_binomial, short_ivs[1:3], excl, excl, "excl_runs_ols")
+
+stargazer(incl_runs, excl_runs, type = "latex", 
+          dep.var.labels = "Increase Border Spending, Including A Border Wall",
+          covariate.labels = c("Distance (in km)",
+                               "Acculturation", "Missing Acculturation",
+                               "Party",
+                               "Linked Fate",
+                               "Education","Age",
+                               "Income",
+                               "Distance (in km): Acculturation",
+                               "Constant"), column.labels = c("Most Inclusive",
+                                                              "Least Inclusive"),
+          column.separate = c(3,3))

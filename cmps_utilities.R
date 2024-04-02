@@ -18,7 +18,9 @@ library(GPArotation)
 library(lmtest)
 library(devtools)
 library(pwr)
-library(WebPower)
+# library(WebPower) -- masks "select" from DPLYR, load when needed
+library(coefplot)
+library(scales)
 ######### Dependent Variables ######## 
 
 dvs_ols <- c("border_security_recoded")
@@ -56,5 +58,7 @@ bin_function <- function(dv, vars, des, dat, out){
   }
   assign(out, bin_mods, envir = .GlobalEnv)
 }
+
+
 
 
