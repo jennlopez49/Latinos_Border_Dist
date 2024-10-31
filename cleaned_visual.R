@@ -190,9 +190,10 @@ both_psych <- i_psych + e_psych + plot_layout(guides = "collect")
 ggsave("both_psych.pdf", width = 7, height = 4)
 
 ### Correlation Matrix --------------
-cor_data <- cleaned_full %>% select(Spanish, Imm_Comm, Parents_Born, 
+cor_data <- full_cmps_lat %>% select(Spanish, Imm_Comm, Parents_Born, 
                                     Grandparents_Born, Psych_Distance, 
-                                    distance_km, Remit, family_birth) 
+                                    distance_km, Remit, family_birth, Inclusive,
+                                    border_state) 
 cors <- cor(cor_data, use = "pairwise.complete.obs") %>% as.data.frame()
 xtable(cors)
 #### Summary Stats -------

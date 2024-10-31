@@ -168,6 +168,55 @@ stargazer(incl_runs_sec, excl_runs_sec, type = "latex",
 
 
 
+### Testing the Border on the Full Sample ---- 
+
+border_ivs <- list()
+border_ivs[[1]] <- c("border_state","Party_5pt", "linked",
+                    "Education", "age_sqd", "Income")
+# short_ivs[[2]] <- c("dist_sqd","Party_5pt", "linked",
+#                     "Education", "Age", "Income")
+border_ivs[[2]] <- c("family_birth", "missing_birth",  "Party_5pt", "linked",
+                    "Education", "age_sqd", "Income")
+# short_ivs[[3]] <- c("Psych_Distance","Party_5pt", "linked",
+#                     "Education", "Age", "Income")
+border_ivs[[3]] <- c("inclusivity*family_birth", "missing_birth",  "linked", 
+                    "Party_5pt",
+                    "Education", "age_sqd", "Income")
+# short_ivs[[5]] <- c("border_state*Psych_Distance", "linked", "Party_5pt",
+#                     "Education", "Age", "Income")
+
+border_ivs[[4]] <- c("border_state*family_birth*inclusivity", "missing_birth",  "linked",
+                     "Party_5pt",
+                     "Education", "age_sqd", "Income")
+
+full_cmps_survey <- svydesign(id = ~ 1, weights = ~race_weight, data = full_cmps_latino)
+bin_function(dvs_binomial, border_ivs, full_cmps_survey, full_cmps_survey, "full_border_bin")
+ols_function(dvs_ols, border_ivs, full_cmps_survey, full_cmps_survey,"full_border_ols")
+
+## Making the Table 
+stargazer(full_border_bin, type = "latex", 
+          dep.var.labels = "Increase Border Spending, Including A Border Wall",
+          covariate.labels = c("Border State",
+                               "Acculturation",
+                               "Missing Acculturation",
+                               "Party",
+                               "Linked Fate",
+                               "Education","Age",
+                               "Income", 
+                               "Border State: Acculturation",
+                               "Constant"))
+stargazer(full_border_ols, type = "latex", 
+          dep.var.labels = "Make Border Security a National Priority",
+          covariate.labels = c("Border State",
+                               "Acculturation",
+                               "Missing Acculturation",
+                               "Party",
+                               "Linked Fate",
+                               "Education","Age",
+                               "Income", 
+                               "Border State: Acculturation",
+                               "Constant"))
+
 ### Testing the individual vars for the index -----
 index_ivs <- list()
 
